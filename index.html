@@ -239,6 +239,7 @@
 /* ============ À REMPLIR : configuration Firebase ============ */
 const firebaseConfig = {
   apiKey: "AIzaSyCYPzTEY07lK1LHA8y-I8YYEMBvFIpoZhg",
+  authDomain: "hisaux-atoi.firebaseapp.com",
   databaseURL: "https://hisaux-atoi-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "hisaux-atoi"
 };
@@ -650,7 +651,9 @@ const last = localStorage.getItem('tour_code');
 if (last){ $('code').value = last; join(last); }
 </script>
 <!-- Import de Firebase Auth (à ajouter avec vos autres scripts Firebase) -->
-<script src="https://gstatic.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 (function () {
   const title = document.querySelector('#home h1');
