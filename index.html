@@ -650,5 +650,37 @@ document.addEventListener('click', keepAwake, {once: true});
 const last = localStorage.getItem('tour_code');
 if (last){ $('code').value = last; join(last); }
 </script>
+<!-- Import de Firebase Auth (à ajouter avec vos autres scripts Firebase) -->
+<script src="https://gstatic.com"></script>
+
+<script>
+  let clickCount = 0;
+  const title = document.querySelector('h1');
+
+  // Détection du triple-clic secret sur le titre principal
+  title.addEventListener('click', () => {
+    clickCount++;
+    if (clickCount === 3) {
+      clickCount = 0;
+      loginAsAdmin();
+    }
+    // Réinitialise le compteur après 2 secondes d'inactivité
+    setTimeout(() => clickCount = 0, 2000);
+  });
+
+  // Fonction d'authentification Google
+  function loginAsAdmin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => {
+        // Affiche votre UID dans la console ou via une alerte temporaire
+        alert("Connecté ! Votre UID est : " + result.user.uid);
+        console.log("Copiez cet UID pour vos règles Firebase :", result.user.uid);
+      })
+      .catch((error) => {
+        alert("Erreur de connexion : " + error.message);
+      });
+  }
+</script>
 </body>
 </html>
