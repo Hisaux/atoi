@@ -233,8 +233,10 @@
   <button id="end">Terminer la partie</button>
 </div>
 
+<!-- Firebase : chaque module n'est chargé qu'UNE seule fois, avant le script principal -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 /* ============ À REMPLIR : configuration Firebase ============ */
 const firebaseConfig = {
@@ -650,10 +652,8 @@ document.addEventListener('click', keepAwake, {once: true});
 const last = localStorage.getItem('tour_code');
 if (last){ $('code').value = last; join(last); }
 </script>
-<!-- Import de Firebase Auth (à ajouter avec vos autres scripts Firebase) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<!-- Accès administrateur : 3 clics rapides sur le titre de l'accueil -->
 <script>
 (function () {
   const title = document.querySelector('#home h1');
