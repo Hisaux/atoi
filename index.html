@@ -14,6 +14,7 @@
     --ink2:rgba(27,34,51,.6);
     --glass:rgba(255,255,255,.52);
     --edge:rgba(255,255,255,.85);
+    --lift:30vh; /* hauteur dont le nom du joueur est remonté depuis le bas */
     --bg:radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),
          radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),
          radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),
@@ -59,11 +60,12 @@
     width:100%;padding:15px 16px;font:inherit;font-size:18px;border-radius:8px;
     border:1px solid lightgray;background:rgba(255,255,255,.62);color:var(--ink);
   }
-  input[type=text]:focus{box-shadow:inset 0 2px 6px rgba(40,60,110,.10),0 0 0 3px rgba(60,120,255,.35)}
+  input:focus,input:focus-visible{outline:none;box-shadow:none}
   input::placeholder{color:rgba(27,34,51,.4)}
-  input[type=color]{width:58px;height:54px;padding:4px;border:1px solid var(--edge);border-radius:18px;background:rgba(255,255,255,.62);flex:0 0 58px}
+  input[type=color]{width:54px;height:54px;padding:4px;border:1px solid var(--edge);border-radius:50%;background:rgba(255,255,255,.62);flex:0 0 54px;cursor:pointer}
   input[type=color]::-webkit-color-swatch-wrapper{padding:0}
-  input[type=color]::-webkit-color-swatch{border:0;border-radius:13px}
+  input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
+  input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
 
   button{
     font:inherit;font-size:18px;font-weight:400;padding:12px 24px;border-radius:60px;cursor:pointer;
@@ -76,14 +78,22 @@
   button.pri{
     color:#fff;background:#2d69eb;
   }
+  button.link{
+    background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;
+    padding:4px 0;font-size:14px;font-weight:500;color:#2d69eb;
+  }
   .row{display:flex;gap:10px;align-items:center;justify-content:center;margin:10px 0}
   .row>*{flex:1}
   .row>button{flex:0 0 auto}
 
   .err{color:#d93025;margin-top:10px;min-height:20px;font-size:15px}
+  #nameErr{margin:0;line-height:20px;text-align:center}
   .hint{color:var(--ink2);font-size:14px;margin:10px 0 0;line-height:1.4}
+  .hint.ctr{text-align:center}
 
-  /* lobby */
+  /* préparation */
+  .codebox{margin:0 0 10px}
+  .codeval{font-size:36px;font-weight:700;letter-spacing:.04em;text-align:center;margin-top:2px;word-break:break-all}
   .pl{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:10px 0;border-radius:22px;
     background:rgba(255,255,255,.55);border:1px solid var(--edge);
     -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
@@ -91,40 +101,51 @@
   .pl .dot{width:30px;height:30px;border-radius:50%;flex:0 0 30px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
   .pl .nm{flex:1;font-size:18px;font-weight:600}
   .pl button{padding:8px 13px;font-size:16px;border-radius:14px}
-  label.opt{display:flex;align-items:center;gap:14px;padding:16px;font-size:17px;font-weight:600;line-height:1.3}
-  label.opt input{flex:0 0 26px;width:26px;height:26px;accent-color:#2d69eb}
+  label.opt{display:flex;align-items:flex-start;gap:14px;padding:16px;font-size:17px;font-weight:600;line-height:1.3}
+  label.opt input{flex:0 0 26px;width:26px;height:26px;margin:-2px 0 0;accent-color:#2d69eb}
   label.opt small{font-weight:400;color:var(--ink2);font-size:14px}
 
   /* écran de jeu */
   #game{padding:0}
+  #gback{position:fixed;top:max(14px,env(safe-area-inset-top));left:14px;z-index:5}
   #top{display:flex;flex-direction:column;align-items:center;gap:10px;padding:max(16px,env(safe-area-inset-top)) 14px 0}
   #strip{padding:9px 14px;gap:9px;flex-wrap:wrap;justify-content:center}
   #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;opacity:.55;transition:transform .2s,opacity .2s}
   #strip .chip.act{opacity:1;transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
   #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px}
   #main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
-  #stage{width:min(90vw,420px);padding:34px 24px 28px;text-align:center}
-  #big{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.05;word-break:break-word}
-  #big .orb{display:block;width:76px;height:76px;border-radius:50%;margin:0 auto 18px;border:3px solid #fff;
-    box-shadow:0 10px 26px rgba(0,0,0,.25),inset 0 -8px 14px rgba(0,0,0,.12),inset 0 8px 12px rgba(255,255,255,.5)}
+  /* le stage est un carré */
+  #stage{width:min(86vw,360px,40vh);aspect-ratio:1/1;padding:20px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    transition:transform .12s}
+  #stage.tap{cursor:pointer}
+  #stage.tap:active{transform:scale(.985)}
+  #big{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.05;overflow-wrap:anywhere}
   #sub{font-size:19px;margin-top:12px;color:inherit;opacity:.8;font-weight:500}
-  #done{margin-top:26px;width:100%;font-size:24px;padding:20px;border-radius:22px;color:#fff;
-    background:linear-gradient(180deg,rgba(48,58,90,.96),rgba(22,28,48,.96));border:1px solid rgba(255,255,255,.25);
-    box-shadow:0 10px 26px rgba(15,20,40,.35),inset 0 1px 0 rgba(255,255,255,.25)}
-  #foot{padding:14px 20px max(28px,env(safe-area-inset-bottom));text-align:center;min-height:130px}
-  #myname{font-size:19px;font-weight:700;padding:10px 20px;user-select:none;-webkit-user-select:none;cursor:pointer}
-  #myname .dot{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
-  #rew{display:none;margin:14px auto 0}
-  #rew.on{display:block}
+  #foot{padding:14px 20px 0;margin-bottom:var(--lift);text-align:center}
+  /* le nom prend la couleur du joueur, le texte s'adapte pour rester lisible */
+  #myname{font-size:19px;font-weight:700;padding:10px 20px;user-select:none;-webkit-user-select:none;cursor:pointer;
+    background:var(--pc,rgba(255,255,255,.55));color:var(--pt,var(--ink))}
+  #myname .rw{display:none;align-items:center;gap:8px}
+  #myname.armed{background:rgba(27,34,51,.9);color:#fff;border-color:rgba(255,255,255,.3)}
+  #myname.armed .nm{display:none}
+  #myname.armed .rw{display:inline-flex}
+  #myname .rw svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;
+    animation:ccw 1.6s linear infinite}
+  #myname.spin .rw svg{animation-duration:.45s}
+  @keyframes ccw{to{transform:rotate(-360deg)}}
+  #myname.shake{animation:shake .32s}
+  @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
   #tapc{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;font-size:20px;font-weight:700;pointer-events:none;
     padding:8px 18px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #fff;box-shadow:0 6px 20px rgba(40,60,110,.18)}
   #tapc:empty{display:none}
-  #quit{position:fixed;right:12px;bottom:max(10px,env(safe-area-inset-bottom));font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px}
+  #end{position:fixed;right:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
+    font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:#d93025}
 
-  /* clignotements : la couleur du joueur alterne avec une version pâle */
-  .flash{animation:blink .42s steps(1) 8}
+  /* clignotements : 1 fois par seconde, la couleur du joueur alterne avec une version pâle */
+  .flash{animation:blink 1s steps(1) 3}
   @keyframes blink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
-  .alarm{animation:alarmblink .5s steps(1) infinite}
+  .alarm{animation:alarmblink 1s steps(1) infinite}
   @keyframes alarmblink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
 </style>
 </head>
@@ -144,11 +165,15 @@
   </div>
 </div>
 
-<!-- LOBBY -->
+<!-- PRÉPARATION -->
 <div id="lobby" class="screen">
   <div class="wrap">
-    <h1>Préparer la partie</h1>
-    <div class="hint" id="lobbyCode" style="margin:0 0 6px"></div>
+    <h1>Préparation</h1>
+
+    <div class="codebox">
+      <div class="hint ctr">Les autres joueurs peuvent rejoindre avec le code :</div>
+      <div class="codeval" id="lobbyCode"></div>
+    </div>
 
     <div class="glass card">
       <h2>Ajouter un joueur</h2>
@@ -156,7 +181,8 @@
         <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
         <input id="pcolor" type="color" value="#e53935">
       </div>
-      <div class="row"><button id="addP">Ajouter</button></div>
+      <div class="err" id="nameErr"></div>
+      <div class="row"><button id="addP" class="pri">Ajouter</button></div>
     </div>
 
     <div class="glass card">
@@ -165,18 +191,18 @@
     </div>
 
     <div class="glass card">
-      <h2>Options</h2>
+      <h2>Option</h2>
       <label class="opt"><input type="checkbox" id="optHurry"><span>Mode « Plus vite ! »<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small></span></label>
     </div>
 
     <div class="row" style="margin-top:16px"><button id="start" class="pri" disabled>Lancer la partie</button></div>
-    <div class="err" id="lobbyErr"></div>
   </div>
 </div>
 
 <!-- QUI ES-TU -->
 <div id="who" class="screen">
   <div class="wrap">
+    <button id="back" class="link">&lt; retour</button>
     <h1>Qui es-tu ?</h1>
     <div id="whoList"></div>
   </div>
@@ -184,6 +210,7 @@
 
 <!-- JEU -->
 <div id="game" class="screen">
+  <button id="gback" class="link">&lt; retour</button>
   <div id="top">
     <div id="strip" class="pill"></div>
     <div id="turnno" class="pill"></div>
@@ -192,15 +219,19 @@
     <div id="stage" class="glass">
       <div id="big"></div>
       <div id="sub"></div>
-      <button id="done">J'ai fini</button>
     </div>
   </div>
   <div id="foot">
-    <div id="myname" class="pill"></div>
-    <button id="rew">Rewind : revenir à mon dernier tour</button>
+    <div id="myname" class="pill">
+      <span class="nm"></span>
+      <span class="rw">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Rewind
+      </span>
+    </div>
   </div>
   <div id="tapc"></div>
-  <button id="quit">changer de partie</button>
+  <button id="end">Terminer la partie</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -218,14 +249,19 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const $ = id => document.getElementById(id);
 
-let code = null, ref = null, g = null, meIdx = null;
-let prevCurrent = null, myTurnSince = 0, rewTimer = null;
+// identifiant propre à ce téléphone : sert à retrouver quel joueur j'ai choisi
+let dev = localStorage.getItem('tour_dev');
+if (!dev){ dev = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('tour_dev', dev); }
+
+let code = null, ref = null, g = null, meIdx = null, hadData = false;
+let prevCurrent = null, myTurnSince = 0, rewTimer = null, armed = false, rwBusy = false;
 let srvOff = 0, expiringFor = null, tapcTimer = null;
 const taps = [];
 db.ref('.info/serverTimeOffset').on('value', s => { srvOff = s.val() || 0; });
 const nowS = () => Date.now() + srvOff;
 
 const LIGHT = 'radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),#eef2fa';
+const PALETTE = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
 
 function show(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
@@ -241,41 +277,87 @@ function textOn(hex){
   const n = parseInt(hex.slice(1), 16), r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
   return (0.299*r + 0.587*gg + 0.114*b) > 150 ? '#111' : '#fff';
 }
+function hslHex(h, s, l){
+  l /= 100;
+  const a = s * Math.min(l, 1 - l) / 100;
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
 const players = () => (g && g.players) || [];
+const norm = s => String(s).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+// première couleur encore libre (palette d'abord, puis couleurs générées)
+function freeColor(){
+  const used = players().map(p => String(p.color).toLowerCase());
+  for (const c of PALETTE) if (!used.includes(c)) return c;
+  for (let h = 15, i = 0; i < 360; i++, h = (h + 47) % 360){
+    const c = hslHex(h, 70, 50);
+    if (!used.includes(c)) return c;
+  }
+  return '#888888';
+}
+
+// quel joueur ce téléphone a-t-il choisi ?
+function myIdx(){
+  const c = (g && g.claims) || {};
+  for (const k in c) if (c[k] === dev) return +k;
+  return null;
+}
+function claimedCount(){
+  const c = (g && g.claims) || {}, n = players().length;
+  return Object.keys(c).filter(k => +k < n).length;
+}
 
 /* ---------- Accueil ---------- */
 function join(c){
   code = c.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
   if (!code){ $('homeErr').textContent = 'Saisis un code (lettres/chiffres).'; return; }
   localStorage.setItem('tour_code', code);
-  const saved = localStorage.getItem('tour_me_' + code);
-  meIdx = saved === null ? null : parseInt(saved, 10);
+  meIdx = null;
+  hadData = false;
   if (ref) ref.off();
   ref = db.ref('games/' + code);
   ref.on('value', snap => {
-    g = snap.val() || {players: [], current: 0, turn: 1, started: false};
+    const v = snap.val();
+    if (v && v.ended){
+      // la partie a été terminée : tout le monde revient à l'accueil
+      if (hadData) leaveGame();
+      else ref.remove();                 // reste d'une ancienne partie : on nettoie
+      return;
+    }
+    if (v) hadData = true;
+    g = v || {players: [], current: 0, turn: 1, started: false};
     render();
   }, err => { $('homeErr').textContent = 'Erreur Firebase : ' + err.message; show('home'); });
 }
+function leaveGame(){
+  if (ref) ref.off();
+  ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null;
+  disarm();
+  localStorage.removeItem('tour_code');
+  $('code').value = '';
+  show('home');
+}
 $('go').onclick = () => join($('code').value);
 $('code').addEventListener('keydown', e => { if (e.key === 'Enter') join($('code').value); });
-$('quit').onclick = () => {
-  if (ref) ref.off(); ref = null; g = null;
-  localStorage.removeItem('tour_code');
-  show('home');
-};
+$('back').onclick = () => leaveGame();
 
 /* ---------- Rendu global ---------- */
 function render(){
   if (!g.started) return renderLobby();
+  meIdx = myIdx();
   if (meIdx === null || meIdx >= players().length) return renderWho();
   renderGame();
 }
 
-/* ---------- Lobby ---------- */
+/* ---------- Préparation ---------- */
 function renderLobby(){
   show('lobby');
-  $('lobbyCode').textContent = 'Partie : ' + code + ' — les autres joueurs peuvent rejoindre avec ce code.';
+  $('lobbyCode').textContent = code;
   const list = players(), box = $('plist');
   box.innerHTML = '';
   if (!list.length){
@@ -294,36 +376,59 @@ function renderLobby(){
   });
   $('start').disabled = list.length < 2;
   $('optHurry').checked = !!(g.options && g.options.hurry);
+  // si la couleur proposée vient d'être prise (par moi ou un autre téléphone), on en propose une libre
+  if (list.some(p => String(p.color).toLowerCase() === $('pcolor').value.toLowerCase())) $('pcolor').value = freeColor();
 }
 function move(i, d){
   const a = players().slice(), j = i + d;
   [a[i], a[j]] = [a[j], a[i]];
   ref.child('players').set(a);
 }
-$('addP').onclick = () => {
-  const name = $('pname').value.trim();
-  if (!name){ $('lobbyErr').textContent = 'Saisis un prénom.'; return; }
-  $('lobbyErr').textContent = '';
-  const a = players().slice();
-  a.push({name, color: $('pcolor').value});
-  ref.child('players').set(a);
-  $('pname').value = '';
-  const palette = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
-  $('pcolor').value = palette[a.length % palette.length];
-};
+function nameErr(msg){ $('nameErr').textContent = msg || ''; }
+function addPlayer(){
+  const name = $('pname').value.trim(), color = $('pcolor').value.toLowerCase();
+  if (!name){ nameErr('Saisis un prénom.'); return; }
+  let reason = '';
+  // transaction : pas de doublon même si deux téléphones ajoutent en même temps
+  ref.child('players').transaction(a => {
+    a = a || [];
+    reason = '';
+    if (a.some(p => norm(p.name) === norm(name))){ reason = 'Ce prénom est déjà pris.'; return; }
+    if (a.some(p => String(p.color).toLowerCase() === color)){ reason = 'Cette couleur est déjà prise.'; return; }
+    a.push({name, color});
+    return a;
+  }, (err, committed) => {
+    if (err){ nameErr('Erreur : ' + err.message); return; }
+    if (!committed){ nameErr(reason || 'Impossible d\'ajouter ce joueur.'); return; }
+    nameErr('');
+    $('pname').value = '';
+    $('pcolor').value = freeColor();
+    $('pname').focus();
+  });
+}
+$('addP').onclick = addPlayer;
+$('pname').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addPlayer(); } });
+$('pname').addEventListener('input', () => nameErr(''));
+$('pcolor').addEventListener('input', () => nameErr(''));
 $('start').onclick = () => ref.update({started: true, current: 0, turn: 1});
 
 /* ---------- Qui es-tu ? ---------- */
+function claim(i){
+  ref.child('claims/' + i).transaction(v => v ? undefined : dev);   // refusé si déjà pris
+}
 function renderWho(){
   show('who');
   const box = $('whoList'); box.innerHTML = '';
+  const claims = g.claims || {};
   players().forEach((p, i) => {
+    const taken = !!claims[i] && claims[i] !== dev;
     const b = document.createElement('button');
-    b.textContent = p.name;
+    b.innerHTML = esc(p.name) + (taken ? '<small style="display:block;font-size:14px;opacity:.85">déjà pris</small>' : '');
+    b.disabled = taken;
     b.style.cssText = `display:block;width:100%;margin:12px 0;padding:24px;font-size:24px;border-radius:24px;` +
-      `background-color:${p.color};background-image:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0) 60%);` +
+      `background-color:${p.color};` +
       `color:${textOn(p.color)};border:1px solid rgba(255,255,255,.7)`;
-    b.onclick = () => { meIdx = i; localStorage.setItem('tour_me_' + code, i); render(); };
+    b.onclick = () => claim(i);
     box.append(b);
   });
 }
@@ -336,10 +441,14 @@ function renderGame(){
   const mine = cur === meIdx;
   const gs = $('game');
 
-  // le stage prend la couleur du joueur en cours
+  // retour possible tant que tout le monde n'a pas choisi son nom
+  $('gback').style.display = claimedCount() < n ? '' : 'none';
+
+  // le stage (carré) prend la couleur du joueur en cours ; toute la carte est cliquable à mon tour
   const st = $('stage');
   st.style.background = `linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 62%),${act.color}`;
   st.style.color = textOn(act.color);
+  st.classList.toggle('tap', mine);
 
   // pastilles d'ordre
   $('strip').innerHTML = list.map((p, i) =>
@@ -347,7 +456,11 @@ function renderGame(){
   // « Tour » = une manche complète : le numéro ne change que lorsque tout le monde a joué
   $('turnno').textContent = 'Tour ' + (Math.floor(((g.turn || 1) - 1) / n) + 1);
 
-  $('myname').innerHTML = `<i class="dot" style="background:${me.color}"></i>${esc(me.name)}`;
+  // mon nom : pastille à ma couleur, texte adapté
+  const mn = $('myname');
+  mn.style.setProperty('--pc', me.color);
+  mn.style.setProperty('--pt', textOn(me.color));
+  mn.querySelector('.nm').textContent = me.name;
 
   const al = (g.alarm && g.alarm.turn === g.turn) ? g.alarm : null;
   const rem = al ? Math.max(0, Math.ceil((al.until - nowS()) / 1000)) : 0;
@@ -356,7 +469,6 @@ function renderGame(){
   if (mine){
     // plein écran à ma couleur
     gs.style.background = `radial-gradient(90% 55% at 50% 0%,rgba(255,255,255,.45),transparent 70%),${me.color}`;
-    $('done').style.display = '';
     if (al){
       gs.classList.remove('flash'); gs.classList.add('alarm');
       $('big').textContent = 'DÉPÊCHE-TOI !';
@@ -364,7 +476,7 @@ function renderGame(){
     } else {
       gs.classList.remove('alarm');
       $('big').textContent = 'À TOI !';
-      $('sub').textContent = 'Touche l\'écran quand tu as fini';
+      $('sub').textContent = 'Touche ici quand tu as fini';
       if (prevCurrent !== cur){
         myTurnSince = Date.now();
         gs.classList.remove('flash'); void gs.offsetWidth; gs.classList.add('flash');
@@ -375,12 +487,20 @@ function renderGame(){
     gs.classList.remove('flash'); gs.classList.remove('alarm');
     // fond clair avec une lueur de la couleur du joueur actif
     gs.style.background = `radial-gradient(70% 42% at 50% 30%,${rgba(act.color, .55)},transparent 72%),${LIGHT}`;
-    $('big').innerHTML = `<span class="orb" style="background:${act.color}"></span>${esc(act.name)}`;
+    $('big').textContent = act.name;
     $('sub').textContent = al ? ('Trop lent ! Tour passé dans ' + rem + ' s') : 'est en train de jouer';
-    $('done').style.display = 'none';
   }
   prevCurrent = cur;
 }
+
+// retour au choix du nom (libère mon joueur) tant que tout le monde n'a pas choisi
+$('gback').onclick = () => {
+  if (!ref || meIdx === null || claimedCount() >= players().length) return;
+  const i = meIdx;
+  disarm();
+  prevCurrent = null;
+  ref.child('claims/' + i).remove();
+};
 
 function endTurn(){
   if (!g || !g.started || meIdx === null) return;
@@ -394,31 +514,67 @@ function endTurn(){
     return cur;
   });
 }
-$('done').onclick = e => { e.stopPropagation(); endTurn(); };
-$('main').onclick = () => {
+// toute la carte (stage) termine mon tour
+$('stage').onclick = () => {
   if (prevCurrent === meIdx && Date.now() - myTurnSince > 700) endTurn();   // garde anti-clic accidentel
 };
 
-/* ---------- Bouton secret : rewind ---------- */
-$('myname').onclick = e => {
-  e.stopPropagation();
-  $('rew').classList.add('on');
-  clearTimeout(rewTimer);
-  rewTimer = setTimeout(() => $('rew').classList.remove('on'), 6000);
+/* ---------- Terminer la partie : base vidée, tout le monde revient à l'accueil ---------- */
+$('end').onclick = () => {
+  if (!ref) return;
+  if (!confirm('Terminer la partie pour tous les joueurs ?')) return;
+  const r = ref;
+  r.set({ended: true}).then(() => setTimeout(() => r.remove(), 3000));
 };
-$('rew').onclick = e => {
-  e.stopPropagation();
+
+/* ---------- Rewind : on touche son nom ---------- */
+// Une seule fois par joueur et par partie ; impossible tant qu'on n'a pas joué (Tour 1)
+function canRewind(){
+  if (!g || !g.started || meIdx === null) return false;
+  const n = players().length, me = meIdx;
+  if (g.rw && g.rw[me]) return false;                         // déjà utilisé
+  const c = g.current % n, steps = ((c - me + n) % n) || n;
+  return (g.turn || 1) - 1 - steps >= 0;                      // a déjà joué au moins une fois
+}
+function disarm(){
+  armed = false; rwBusy = false;
+  clearTimeout(rewTimer);
+  $('myname').classList.remove('armed', 'spin');
+}
+function shake(){
+  const el = $('myname');
+  el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+}
+function doRewind(){
   const n = players().length, me = meIdx;
   ref.transaction(cur => {
     if (!cur) return cur;
+    if (cur.rw && cur.rw[me]) return;                          // déjà utilisé
     const c = cur.current % n;
-    const steps = ((c - me + n) % n) || n;           // nb de tours à reculer jusqu'à mon dernier passage
+    const steps = ((c - me + n) % n) || n;                    // nb de passages à reculer jusqu'à mon dernier tour
+    if ((cur.turn || 1) - 1 - steps < 0) return;              // je n'ai pas encore joué
     cur.current = me;
-    cur.turn = Math.max(1, (cur.turn || 1) - steps);
+    cur.turn = (cur.turn || 1) - steps;
     cur.alarm = null; cur.hurry = null;
+    cur.rw = cur.rw || {}; cur.rw[me] = true;
     return cur;
   });
-  $('rew').classList.remove('on');
+}
+$('myname').onclick = e => {
+  e.stopPropagation();
+  if (rwBusy) return;
+  if (!armed){
+    if (!canRewind()){ shake(); return; }
+    armed = true;
+    $('myname').classList.add('armed');                        // la zone devient « Rewind »
+    clearTimeout(rewTimer);
+    rewTimer = setTimeout(disarm, 6000);
+    return;
+  }
+  rwBusy = true;
+  clearTimeout(rewTimer);
+  $('myname').classList.add('spin');                           // la flèche tourne vite à l'envers
+  setTimeout(() => { doRewind(); disarm(); }, 650);
 };
 
 /* ---------- Option « Plus vite ! » ---------- */
@@ -430,7 +586,7 @@ $('game').addEventListener('pointerdown', e => {
   const n = players().length;
   if (g.current % n === meIdx) return;                       // c'est mon tour : pas de vote
   if (g.alarm && g.alarm.turn === g.turn) return;            // alarme déjà en cours
-  if (e.target.closest('#myname,#rew,#quit')) return;
+  if (e.target.closest('#myname,#end,#gback')) return;
   const t = Date.now();
   taps.push(t);
   while (taps.length && t - taps[0] > 10000) taps.shift();
