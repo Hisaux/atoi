@@ -655,32 +655,43 @@ if (last){ $('code').value = last; join(last); }
 
 <script>
   let clickCount = 0;
+  
+  // On cherche le titre exact "C'est à qui de jouer ?"
   const title = document.querySelector('h1');
 
-  // Détection du triple-clic secret sur le titre principal
-  title.addEventListener('click', () => {
-    clickCount++;
-    if (clickCount === 3) {
-      clickCount = 0;
-      loginAsAdmin();
-    }
-    // Réinitialise le compteur après 2 secondes d'inactivité
-    setTimeout(() => clickCount = 0, 2000);
-  });
+  if (title) {
+    title.style.cursor = 'pointer'; // Rend le titre cliquable visuellement
+    title.addEventListener('click', () => {
+      clickCount++;
+      if (clickCount === 3) {
+        clickCount = 0;
+        loginAsAdmin();
+      }
+      setTimeout(() => clickCount = 0, 2000);
+    });
+  }
 
-  // Fonction d'authentification Google
   function loginAsAdmin() {
+    // Vérification de la version du SDK Firebase utilisée dans votre projet
+    const authService = typeof firebase !== 'undefined' ? firebase.auth() : null;
+    
+    if (!authService) {
+      alert("Erreur : Le module Firebase Auth n'est pas chargé dans votre HTML.");
+      return;
+    }
+
     const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
+    authService.signInWithPopup(provider)
       .then((result) => {
-        // Affiche votre UID dans la console ou via une alerte temporaire
-        alert("Connecté ! Votre UID est : " + result.user.uid);
-        console.log("Copiez cet UID pour vos règles Firebase :", result.user.uid);
+        // Cette alerte va s'ouvrir sur votre iPhone ou ordinateur et afficher l'UID
+        alert("Bravo ! Votre UID est :\n\n" + result.user.uid);
+        console.log("UID:", result.user.uid);
       })
       .catch((error) => {
-        alert("Erreur de connexion : " + error.message);
+        alert("Erreur de connexion Google : " + error.message);
       });
   }
 </script>
+
 </body>
 </html>
