@@ -122,6 +122,13 @@
     width:max-content;max-width:min(92vw,420px);text-align:center;justify-content:center;font-size:16px;font-weight:600;line-height:1.3;border-radius:22px}
   #big.num{font-size:120px;line-height:1}
   #big.msg{font-size:30px;line-height:1.15}
+  #modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px;
+    background:rgba(27,34,51,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #modal.on{display:flex}
+  .mbox{width:min(100%,360px);padding:24px;text-align:center;background:rgba(255,255,255,.82)}
+  #mtext{font-size:17px;line-height:1.4;white-space:pre-line;word-break:break-word;margin-bottom:20px}
+  .mbtns{display:flex;gap:10px;justify-content:center}
+  .mbtns button{flex:1;padding:12px 16px}
   #rwfx{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
     background:rgba(27,34,51,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;
     font-size:28px;font-weight:700;text-align:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -249,6 +256,20 @@
   <button id="end">Terminer la partie</button>
 </div>
 
+<!-- Déconnexion : oublie la session sur cet appareil (hors page de garde) -->
+<button id="logout" class="link" style="display:none;position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:60">Déconnexion</button>
+
+<!-- Modale des messages -->
+<div id="modal">
+  <div class="glass mbox">
+    <div id="mtext"></div>
+    <div class="mbtns">
+      <button id="mcancel">Annuler</button>
+      <button id="mok" class="pri">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- Animation « Rewind » affichée sur tous les écrans -->
 <div id="rwfx">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -288,9 +309,38 @@ const nowS = () => Date.now() + srvOff;
 const LIGHT = 'radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),#eef2fa';
 const PALETTE = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
 
+/* ---------- Messages en modale (remplacent alert / confirm) ---------- */
+function uiModal(msg, confirmMode, okLabel){
+  return new Promise(resolve => {
+    const m = $('modal');
+    $('mtext').textContent = msg;
+    $('mok').textContent = okLabel || 'OK';
+    $('mcancel').style.display = confirmMode ? '' : 'none';
+    m.classList.add('on');
+    const done = v => {
+      m.classList.remove('on');
+      $('mok').onclick = $('mcancel').onclick = m.onclick = null;
+      resolve(v);
+    };
+    $('mok').onclick = () => done(true);
+    $('mcancel').onclick = () => done(false);
+    m.onclick = e => { if (e.target === m) done(false); };
+  });
+}
+const uiAlert = msg => uiModal(msg, false);
+const uiConfirm = (msg, okLabel) => uiModal(msg, true, okLabel);
+
 function show(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  $('logout').style.display = id === 'home' ? 'none' : '';
 }
+// Déconnexion : libère mon joueur, oublie la table sur cet appareil et revient à l'accueil
+$('logout').onclick = async () => {
+  if (!await uiConfirm('Oublier ta session sur cet appareil et quitter la table ?', 'Déconnexion')) return;
+  const r = ref, i = meIdx;
+  if (r && i !== null) r.child('claims/' + i).remove().catch(() => {});
+  leaveGame();
+};
 function esc(s){
   return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
@@ -691,9 +741,9 @@ $('stage').onclick = () => {
 };
 
 /* ---------- Terminer la partie : base vidée, tout le monde revient à l'accueil ---------- */
-$('end').onclick = () => {
+$('end').onclick = async () => {
   if (!ref) return;
-  if (!confirm('Terminer la partie pour tous les joueurs ?')) return;
+  if (!await uiConfirm('Terminer la partie pour tous les joueurs ?', 'Terminer')) return;
   const r = ref;
   r.set({ended: true}).then(() => setTimeout(() => r.remove(), 3000));
 };
@@ -851,20 +901,30 @@ if (last){ $('code').value = last; join(last); }
   function showUid(uid, isAdm) {
     let el = document.getElementById('adminInfo');
     let del = document.getElementById('adminDel');
-    if (!uid) { if (el) el.remove(); if (del) del.remove(); return; }
+    let out = document.getElementById('adminOut');
+    if (!uid) { if (el) el.remove(); if (del) del.remove(); if (out) out.remove(); return; }
+    if (!out) {
+      out = document.createElement('button');
+      out.id = 'adminOut';
+      out.className = 'link';
+      out.textContent = 'Déconnexion';
+      out.style.cssText = 'position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;z-index:5';
+      out.onclick = () => firebase.auth().signOut().catch(e => uiAlert('Erreur : ' + e.message));
+      document.getElementById('home').appendChild(out);
+    }
     if (!isAdm && del) { del.remove(); del = null; }
     if (isAdm && !del) {
       del = document.createElement('button');
       del.id = 'adminDel';
       del.textContent = 'Supprimer les parties en cours';
       del.style.cssText = 'display:block;margin:12px auto;font-size:15px;padding:10px 18px;color:#d93025';
-      del.onclick = () => {
-        if (!confirm('Supprimer toutes les parties en cours ? Tous les joueurs reviendront à l\'accueil.')) return;
+      del.onclick = async () => {
+        if (!await uiConfirm('Supprimer toutes les parties en cours ? Tous les joueurs reviendront à l\'accueil.', 'Supprimer')) return;
         db.ref('games').remove().then(() => {
           db.ref('lobby').remove().catch(() => {});
           localStorage.removeItem('tour_code');
-          alert('Parties supprimées.');
-        }).catch(e => alert('Suppression refusée : ' + e.message + '\n(Vérifie les règles Firebase : droit d\'écriture sur « games » pour l\'admin.)'));
+          uiAlert('Parties supprimées.');
+        }).catch(e => uiAlert('Suppression refusée : ' + e.message + '\n(Vérifie les règles Firebase : droit d\'écriture sur « games » pour l\'admin.)'));
       };
       document.querySelector('#home .wrap').appendChild(del);
     }
@@ -887,13 +947,13 @@ if (last){ $('code').value = last; join(last); }
 
   function loginAsAdmin() {
     if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
-      alert("Le module Firebase Auth n'est pas chargé (firebase-auth-compat.js).");
+      uiAlert("Le module Firebase Auth n'est pas chargé (firebase-auth-compat.js).");
       return;
     }
     const auth = firebase.auth();
     if (auth.currentUser) { refresh(auth.currentUser); return; }
     auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-      .catch(e => alert('Erreur de connexion Google :\n' + e.code + '\n' + e.message));
+      .catch(e => uiAlert('Erreur de connexion Google :\n' + e.code + '\n' + e.message));
   }
 
   if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
