@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tour de jeu">
 <meta name="theme-color" content="#eef2fa">
 <title>À qui le tour ?</title>
@@ -652,46 +651,47 @@ if (last){ $('code').value = last; join(last); }
 </script>
 <!-- Import de Firebase Auth (à ajouter avec vos autres scripts Firebase) -->
 <script src="https://gstatic.com"></script>
-
 <script>
-  let clickCount = 0;
-  
-  // On cherche le titre exact "C'est à qui de jouer ?"
-  const title = document.querySelector('h1');
+(function () {
+  const title = document.querySelector('#home h1');
+  if (!title) return;
+  title.style.cssText += ';cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation';
 
-  if (title) {
-    title.style.cursor = 'pointer'; // Rend le titre cliquable visuellement
-    title.addEventListener('click', () => {
-      clickCount++;
-      if (clickCount === 3) {
-        clickCount = 0;
-        loginAsAdmin();
-      }
-      setTimeout(() => clickCount = 0, 2000);
-    });
+  let count = 0, timer = null;
+  title.addEventListener('click', () => {
+    count++;
+    clearTimeout(timer);
+    timer = setTimeout(() => { count = 0; }, 800);
+    if (count === 3) { count = 0; loginAsAdmin(); }
+  });
+
+  function showUid(uid) {
+    let el = document.getElementById('adminInfo');
+    if (!uid) { if (el) el.remove(); return; }
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'adminInfo';
+      el.style.cssText = 'margin:12px 0;text-align:center;font-size:13px;color:rgba(27,34,51,.6);user-select:text;-webkit-user-select:text;word-break:break-all';
+      document.querySelector('#home .wrap').appendChild(el);
+    }
+    el.textContent = 'Administrateur connecté — UID : ' + uid;
   }
 
   function loginAsAdmin() {
-    // Vérification de la version du SDK Firebase utilisée dans votre projet
-    const authService = typeof firebase !== 'undefined' ? firebase.auth() : null;
-    
-    if (!authService) {
-      alert("Erreur : Le module Firebase Auth n'est pas chargé dans votre HTML.");
+    if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
+      alert("Le module Firebase Auth n'est pas chargé (firebase-auth-compat.js).");
       return;
     }
-
-    const provider = new firebase.auth.GoogleAuthProvider();
-    authService.signInWithPopup(provider)
-      .then((result) => {
-        // Cette alerte va s'ouvrir sur votre iPhone ou ordinateur et afficher l'UID
-        alert("Bravo ! Votre UID est :\n\n" + result.user.uid);
-        console.log("UID:", result.user.uid);
-      })
-      .catch((error) => {
-        alert("Erreur de connexion Google : " + error.message);
-      });
+    const auth = firebase.auth();
+    if (auth.currentUser) { showUid(auth.currentUser.uid); return; }
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+      .catch(e => alert('Erreur de connexion Google :\n' + e.code + '\n' + e.message));
   }
-</script>
 
+  if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
+    firebase.auth().onAuthStateChanged(u => showUid(u ? u.uid : null));
+  }
+})();
+</script>
 </body>
 </html>
