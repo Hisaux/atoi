@@ -112,7 +112,16 @@
   #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;opacity:.55;transition:transform .2s,opacity .2s}
   #strip .chip.act{opacity:1;transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
   #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px}
-  #main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
+  #main{flex:1;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;padding:20px}
+  #wait{max-width:min(92vw,420px);text-align:center;justify-content:center;font-size:16px;font-weight:600;line-height:1.3;border-radius:22px}
+  #big.num{font-size:120px;line-height:1}
+  #big.msg{font-size:30px;line-height:1.15}
+  #rwfx{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:rgba(27,34,51,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;
+    font-size:28px;font-weight:700;text-align:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+  #rwfx.on{opacity:1}
+  #rwfx svg{width:130px;height:130px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:ccw .8s linear infinite}
+  #rwtxt{font-size:19px;font-weight:500;opacity:.9}
   /* le stage est un carré */
   #stage{width:min(86vw,360px,40vh);aspect-ratio:1/1;padding:20px;
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
@@ -144,7 +153,8 @@
   /* clignotements : 1 fois par seconde, la couleur du joueur alterne avec une version pâle */
   .flash{animation:blink 1s steps(1) 3}
   @keyframes blink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
-  .alarm{animation:alarmblink 1s steps(1) infinite}
+  .slow{animation:alarmblink 1s steps(1) infinite}
+  .fast{animation:alarmblink .4s steps(1) infinite}
   @keyframes alarmblink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
 </style>
 </head>
@@ -157,7 +167,7 @@
     <div class="glass card">
       <label class="lab" for="code">Code de la partie</label>
       <input id="code" type="text" placeholder="ex. TABLE7" autocapitalize="characters" autocomplete="off">
-      <div class="hint">Tous les joueurs saisissent le même code.</div>
+      <div class="hint">Saisis un code (lettres/chiffres)</div>
       <div class="row" style="margin-top:16px"><button id="go" class="pri">Créer / rejoindre</button></div>
       <div class="err" id="homeErr"></div>
     </div>
@@ -187,6 +197,7 @@
     <div class="glass card">
       <h2>Ordre de passage</h2>
       <div id="plist"></div>
+      <div class="row"><button id="rand" disabled>1er joueur au hasard</button></div>
     </div>
 
     <div class="glass card">
@@ -215,6 +226,7 @@
     <div id="turnno" class="pill"></div>
   </div>
   <div id="main">
+    <div id="wait" class="pill" style="display:none"></div>
     <div id="stage" class="glass">
       <div id="big"></div>
       <div id="sub"></div>
@@ -233,6 +245,13 @@
   <button id="end">Terminer la partie</button>
 </div>
 
+<!-- Animation « Rewind » affichée sur tous les écrans -->
+<div id="rwfx">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+  <div>Rewind</div>
+  <div id="rwtxt"></div>
+</div>
+
 <!-- Firebase : chaque module n'est chargé qu'UNE seule fois, avant le script principal -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -240,7 +259,7 @@
 <script>
 /* ============ À REMPLIR : configuration Firebase ============ */
 const firebaseConfig = {
-  apiKey: "AIzaSyCy9wsO15wIcLkbtSEfO6uKDYEuV7YRQJA",
+  apiKey: "AIzaSyCYPzTEY07lK1LHA8y-I8YYEMBvFIpoZhg",
   authDomain: "hisaux-atoi.firebaseapp.com",
   databaseURL: "https://hisaux-atoi-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "hisaux-atoi"
@@ -319,8 +338,9 @@ function join(c){
   code = c.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
   if (!code){ $('homeErr').textContent = 'Saisis un code (lettres/chiffres).'; return; }
   localStorage.setItem('tour_code', code);
+  $('homeErr').textContent = '';
   meIdx = null;
-  hadData = false;
+  hadData = false; creating = false; fxInit = false; lastFx = null; lastWaiting = false;
   if (ref) ref.off();
   ref = db.ref('games/' + code);
   ref.on('value', snap => {
@@ -331,11 +351,56 @@ function join(c){
       else ref.remove();                 // reste d'une ancienne partie : on nettoie
       return;
     }
-    if (v) hadData = true;
-    g = v || {players: [], current: 0, turn: 1, started: false};
+    if (!v){
+      if (hadData){ leaveGame(); return; }          // la partie a été supprimée
+      if (isAdmin()){
+        // l'administrateur crée la table, puis la signale aux autres téléphones
+        if (!creating){
+          creating = true;
+          ref.update({current: 0, turn: 1, started: false})
+            .then(() => db.ref('lobby').set({code: code, t: firebase.database.ServerValue.TIMESTAMP}).catch(() => {}))
+            .catch(e => { const m = e.message; leaveGame(); $('homeErr').textContent = 'Erreur : ' + m; });
+        }
+        return;
+      }
+      const tried = code;
+      leaveGame();
+      $('code').value = tried;
+      $('homeErr').textContent = "Cette partie n'existe pas. Seul l'administrateur peut créer une table.";
+      return;
+    }
+    hadData = true;
+    // animation Rewind : jouée sur tous les écrans quand un nouveau rewind est lancé
+    const fx = v.rwFx ? v.rwFx.id : null;
+    if (!fxInit){ fxInit = true; lastFx = fx; }
+    else if (fx && fx !== lastFx){
+      lastFx = fx;
+      const pl = (v.players || [])[v.rwFx.by];
+      playRewind(pl ? pl.name : '');
+    }
+    g = v;
     render();
   }, err => { $('homeErr').textContent = 'Erreur Firebase : ' + err.message; show('home'); });
 }
+let creating = false, fxInit = false, lastFx = null, lastWaiting = false, waiting = false, fxTimer = null;
+const isAdmin = () => { try { return !!(firebase.auth && firebase.auth().currentUser); } catch(e){ return false; } };
+function playRewind(name){
+  $('rwtxt').textContent = name ? name + ' revient en arrière' : '';
+  $('rwfx').classList.add('on');
+  if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+  clearTimeout(fxTimer);
+  fxTimer = setTimeout(() => $('rwfx').classList.remove('on'), 2000);
+}
+
+// quand l'administrateur crée une table, le champ code des autres accueils se remplit tout seul
+db.ref('lobby').on('value', s => {
+  const v = s.val();
+  if (!v || !v.code) return;
+  db.ref('games/' + v.code).once('value').then(gs => {
+    const x = gs.val();
+    if (x && !x.ended && $('home').classList.contains('on')) $('code').value = v.code;
+  }).catch(() => {});
+}, () => {});
 function leaveGame(){
   if (ref) ref.off();
   ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null;
@@ -377,6 +442,7 @@ function renderLobby(){
     d.append(up, dn, rm); box.append(d);
   });
   $('start').disabled = list.length < 2;
+  $('rand').disabled = list.length < 2;
   $('optHurry').checked = !!(g.options && g.options.hurry);
   // si la couleur proposée vient d'être prise (par moi ou un autre téléphone), on en propose une libre
   if (list.some(p => String(p.color).toLowerCase() === $('pcolor').value.toLowerCase())) $('pcolor').value = freeColor();
@@ -386,6 +452,14 @@ function move(i, d){
   [a[i], a[j]] = [a[j], a[i]];
   ref.child('players').set(a);
 }
+// tire un joueur au hasard et le place en premier (les autres gardent leur ordre, à ajuster avec les flèches)
+$('rand').onclick = () => {
+  const a = players().slice();
+  if (a.length < 2) return;
+  const p = a.splice(Math.floor(Math.random() * a.length), 1)[0];
+  a.unshift(p);
+  ref.child('players').set(a);
+};
 function nameErr(msg){ $('nameErr').textContent = msg || ''; }
 function addPlayer(){
   const name = $('pname').value.trim(), color = $('pcolor').value.toLowerCase();
@@ -400,7 +474,7 @@ function addPlayer(){
     a.push({name, color});
     return a;
   }, (err, committed) => {
-    if (err){ nameErr('Erreur : ' + err.message); return; }
+    if (err){ nameErr(err.code === 'PERMISSION_DENIED' || /permission/i.test(err.message) ? "Seul l'administrateur peut créer une partie." : 'Erreur : ' + err.message); return; }
     if (!committed){ nameErr(reason || 'Impossible d\'ajouter ce joueur.'); return; }
     nameErr('');
     $('pname').value = '';
@@ -440,11 +514,21 @@ function renderGame(){
   show('game');
   const list = players(), n = list.length;
   const cur = g.current % n, me = list[meIdx], act = list[cur];
-  const mine = cur === meIdx;
   const gs = $('game');
 
-  // retour possible tant que tout le monde n'a pas choisi son nom
-  $('gback').style.display = claimedCount() < n ? '' : 'none';
+  // tant que tout le monde n'a pas choisi son nom : message d'attente et retour possible
+  waiting = claimedCount() < n;
+  const mine = cur === meIdx && !waiting;
+  $('gback').style.display = waiting ? '' : 'none';
+  const wt = $('wait');
+  if (waiting){
+    const cl = g.claims || {};
+    const names = list.filter((p, i) => !cl[i]).map(p => p.name);
+    wt.textContent = 'En attente de ' + (names.length > 1
+      ? names.slice(0, -1).join(' ; ') + ' et ' + names[names.length - 1]
+      : names[0]);
+    wt.style.display = '';
+  } else wt.style.display = 'none';
 
   // le stage (carré) prend la couleur du joueur en cours ; toute la carte est cliquable à mon tour
   const st = $('stage');
@@ -466,32 +550,68 @@ function renderGame(){
 
   const al = (g.alarm && g.alarm.turn === g.turn) ? g.alarm : null;
   const rem = al ? Math.max(0, Math.ceil((al.until - nowS()) / 1000)) : 0;
+  // message « Le tour de X est passé » (affiché ~4 s sur tous les écrans après une alarme)
+  const sk = (g.skipped && g.skipped.turn === g.turn && nowS() < g.skipped.until) ? g.skipped : null;
   if (prevCurrent !== cur){ taps.length = 0; $('tapc').textContent = ''; }
+
+  // clignotement : 'flash' (début de tour), 'slow' (alarme), 'fast' (5 dernières secondes)
+  const setBlink = m => {
+    if (gs.dataset.blink === m) return;
+    gs.classList.remove('flash', 'slow', 'fast');
+    void gs.offsetWidth;
+    if (m) gs.classList.add(m);
+    gs.dataset.blink = m;
+  };
 
   if (mine){
     // plein écran à ma couleur
     gs.style.background = `radial-gradient(90% 55% at 50% 0%,rgba(255,255,255,.45),transparent 70%),${me.color}`;
     if (al){
-      gs.classList.remove('flash'); gs.classList.add('alarm');
-      $('big').textContent = 'DÉPÊCHE-TOI !';
-      $('sub').textContent = 'Ton tour sera passé dans ' + rem + ' s';
-    } else {
-      gs.classList.remove('alarm');
-      $('big').textContent = 'À TOI !';
-      $('sub').textContent = 'Touche ici quand tu as fini';
-      if (prevCurrent !== cur){
-        myTurnSince = Date.now();
-        gs.classList.remove('flash'); void gs.offsetWidth; gs.classList.add('flash');
-        if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
-      }
+      setBlink(rem <= 5 ? 'fast' : 'slow');
+    } else if (prevCurrent !== cur || lastWaiting){
+      myTurnSince = Date.now();
+      setBlink('');
+      setBlink('flash');
+      if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
+    } else if (gs.dataset.blink === 'slow' || gs.dataset.blink === 'fast'){
+      setBlink('');
     }
   } else {
-    gs.classList.remove('flash'); gs.classList.remove('alarm');
+    setBlink('');
     // fond clair avec une lueur de la couleur du joueur actif
     gs.style.background = `radial-gradient(70% 42% at 50% 30%,${rgba(act.color, .55)},transparent 72%),${LIGHT}`;
-    $('big').textContent = act.name;
-    $('sub').textContent = al ? ('Trop lent ! Tour passé dans ' + rem + ' s') : 'est en train de jouer';
   }
+
+  // textes du stage
+  const big = $('big'), sub = $('sub');
+  big.className = '';
+  if (waiting){
+    big.textContent = act.name;
+    sub.textContent = 'commence';
+  } else if (al && rem <= 5){
+    big.className = 'num';
+    big.textContent = rem;
+    sub.textContent = mine ? 'DÉPÊCHE-TOI !' : act.name + ' est trop lent';
+  } else if (al){
+    if (mine){
+      big.textContent = 'DÉPÊCHE-TOI !';
+      sub.textContent = 'Ton tour sera passé dans ' + rem + ' s';
+    } else {
+      big.textContent = act.name;
+      sub.textContent = 'Trop lent ! Tour passé dans ' + rem + ' s';
+    }
+  } else if (sk){
+    big.className = 'msg';
+    big.textContent = sk.player === meIdx ? 'Ton tour est passé' : 'Le tour de ' + (list[sk.player] ? list[sk.player].name : '') + ' est passé';
+    sub.textContent = mine ? 'À toi de jouer !' : act.name + ' joue maintenant';
+  } else if (mine){
+    big.textContent = 'À TOI !';
+    sub.textContent = 'Touche ici quand tu as fini';
+  } else {
+    big.textContent = act.name;
+    sub.textContent = 'est en train de jouer';
+  }
+  lastWaiting = waiting;
   prevCurrent = cur;
 }
 
@@ -518,7 +638,7 @@ function endTurn(){
 }
 // toute la carte (stage) termine mon tour
 $('stage').onclick = () => {
-  if (prevCurrent === meIdx && Date.now() - myTurnSince > 700) endTurn();   // garde anti-clic accidentel
+  if (!waiting && prevCurrent === meIdx && Date.now() - myTurnSince > 700) endTurn();   // garde anti-clic accidentel
 };
 
 /* ---------- Terminer la partie : base vidée, tout le monde revient à l'accueil ---------- */
@@ -559,6 +679,7 @@ function doRewind(){
     cur.turn = (cur.turn || 1) - steps;
     cur.alarm = null; cur.hurry = null;
     cur.rw = cur.rw || {}; cur.rw[me] = true;
+    cur.rwFx = {id: Date.now() + '-' + me, by: me};            // déclenche l'animation sur tous les écrans
     return cur;
   });
 }
@@ -584,7 +705,7 @@ $('optHurry').onchange = e => { ref.child('options/hurry').set(e.target.checked)
 
 // Chaque joueur (qui n'est pas actif) compte ses tapotements : 10 en 10 s => il envoie son « vote »
 $('game').addEventListener('pointerdown', e => {
-  if (!g || !g.started || meIdx === null || !(g.options && g.options.hurry)) return;
+  if (!g || !g.started || waiting || meIdx === null || !(g.options && g.options.hurry)) return;
   const n = players().length;
   if (g.current % n === meIdx) return;                       // c'est mon tour : pas de vote
   if (g.alarm && g.alarm.turn === g.turn) return;            // alarme déjà en cours
@@ -628,16 +749,21 @@ function expireAlarm(){
   ref.transaction(cur => {
     if (!cur || !cur.alarm) return cur;
     if (cur.alarm.turn !== cur.turn || nowS() < cur.alarm.until - 1000) return;
+    const pen = cur.current % n;                        // joueur pénalisé
     cur.current = (cur.current + 1) % n;
     cur.turn = (cur.turn || 1) + 1;
     cur.alarm = null; cur.hurry = null;
+    cur.skipped = {player: pen, turn: cur.turn, until: nowS() + 4000};
     return cur;
   });
 }
 setInterval(() => {
-  if (!g || !g.started || meIdx === null || !g.alarm) return;
-  if (nowS() >= g.alarm.until) expireAlarm();
-  renderGame();   // met à jour le compte à rebours
+  if (!g || !g.started || meIdx === null) return;
+  const sk = g.skipped;
+  const skActive = sk && sk.turn === g.turn && nowS() < sk.until + 600;
+  if (!g.alarm && !skActive) return;
+  if (g.alarm && nowS() >= g.alarm.until) expireAlarm();
+  renderGame();   // met à jour le compte à rebours et le message « tour passé »
 }, 500);
 
 /* ---------- Écran toujours allumé ---------- */
@@ -670,7 +796,23 @@ if (last){ $('code').value = last; join(last); }
 
   function showUid(uid) {
     let el = document.getElementById('adminInfo');
-    if (!uid) { if (el) el.remove(); return; }
+    let del = document.getElementById('adminDel');
+    if (!uid) { if (el) el.remove(); if (del) del.remove(); return; }
+    if (!del) {
+      del = document.createElement('button');
+      del.id = 'adminDel';
+      del.textContent = 'Supprimer les parties en cours';
+      del.style.cssText = 'display:block;margin:12px auto;font-size:15px;padding:10px 18px;color:#d93025';
+      del.onclick = () => {
+        if (!confirm('Supprimer toutes les parties en cours ? Tous les joueurs reviendront à l\'accueil.')) return;
+        db.ref('games').remove().then(() => {
+          db.ref('lobby').remove().catch(() => {});
+          localStorage.removeItem('tour_code');
+          alert('Parties supprimées.');
+        }).catch(e => alert('Suppression refusée : ' + e.message + '\n(Vérifie les règles Firebase : droit d\'écriture sur « games » pour l\'admin.)'));
+      };
+      document.querySelector('#home .wrap').appendChild(del);
+    }
     if (!el) {
       el = document.createElement('div');
       el.id = 'adminInfo';
