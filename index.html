@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tour de jeu">
+<title>À qui le tour ?</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:#111;color:#fff;overflow:hidden}
+  .screen{display:none;position:fixed;inset:0;padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom));overflow-y:auto}
+  .screen.on{display:flex;flex-direction:column}
+  h1{font-size:28px;margin:10px 0 20px}
+  h2{font-size:18px;margin:20px 0 10px;opacity:.8}
+  input[type=text]{width:100%;padding:14px;font-size:18px;border-radius:12px;border:2px solid #333;background:#1c1c1e;color:#fff}
+  button{font-size:18px;padding:14px 18px;border-radius:12px;border:0;background:#2f6bff;color:#fff;font-weight:600}
+  button.sec{background:#2c2c2e}
+  button.danger{background:#b3261e}
+  button:disabled{opacity:.4}
+  .row{display:flex;gap:10px;align-items:center;margin:8px 0}
+  .row>*{flex:1}
+  .row>button.small{flex:0 0 auto;padding:10px 14px}
+  .pl{display:flex;align-items:center;gap:10px;background:#1c1c1e;border-radius:12px;padding:10px 12px;margin:8px 0}
+  .pl .dot{width:28px;height:28px;border-radius:50%;flex:0 0 28px}
+  .pl .nm{flex:1;font-size:18px}
+  .pl button{padding:6px 12px;font-size:16px;background:#2c2c2e}
+  input[type=color]{width:56px;height:50px;padding:0;border:0;border-radius:10px;background:none;flex:0 0 56px}
+  .err{color:#ff8a80;margin-top:8px;min-height:20px}
+  .hint{opacity:.6;font-size:14px;margin-top:6px}
+
+  /* écran de jeu */
+  #game{padding:0;transition:background .3s}
+  #strip{display:flex;gap:6px;padding:max(14px,env(safe-area-inset-top)) 14px 0;justify-content:center;flex-wrap:wrap}
+  #strip .chip{width:26px;height:26px;border-radius:50%;border:3px solid transparent;opacity:.45}
+  #strip .chip.act{opacity:1;border-color:#fff;transform:scale(1.25)}
+  #turnno{text-align:center;font-size:14px;opacity:.75;margin-top:10px}
+  #main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+  #big{font-size:44px;font-weight:800;line-height:1.1}
+  #sub{font-size:20px;margin-top:14px;opacity:.9}
+  #done{margin-top:34px;font-size:26px;padding:22px 40px;border-radius:20px;background:rgba(0,0,0,.35);color:inherit;border:3px solid currentColor}
+  #foot{padding:14px 20px max(24px,env(safe-area-inset-bottom));text-align:center;min-height:120px}
+  #myname{display:inline-block;font-size:20px;font-weight:700;padding:10px 20px;border-radius:30px;background:rgba(0,0,0,.25);user-select:none;-webkit-user-select:none}
+  #rew{display:none;margin:14px auto 0;background:rgba(0,0,0,.45);color:inherit;border:2px dashed currentColor}
+  #rew.on{display:block}
+  .flash{animation:blink .42s steps(1) 8}
+  @keyframes blink{0%{filter:brightness(1)}50%{filter:brightness(.15)}100%{filter:brightness(1)}}
+  #quit{position:fixed;right:10px;bottom:6px;font-size:12px;opacity:.35;background:none;padding:6px;color:inherit}
+  .alarm{animation:alarmblink .5s steps(1) infinite}
+  @keyframes alarmblink{0%{filter:brightness(1)}50%{filter:brightness(.1)}100%{filter:brightness(1)}}
+  #tapc{position:fixed;left:0;right:0;bottom:96px;text-align:center;font-size:22px;font-weight:700;pointer-events:none}
+  label.opt{display:flex;align-items:center;gap:12px;background:#1c1c1e;border-radius:12px;padding:14px;margin:8px 0;font-size:17px}
+  label.opt input{flex:0 0 26px;width:26px;height:26px}
+</style>
+</head>
+<body>
+
+<!-- ACCUEIL -->
+<div id="home" class="screen on">
+  <h1>🎲 À qui le tour ?</h1>
+  <h2>Code de la partie</h2>
+  <input id="code" type="text" placeholder="ex. TABLE7" autocapitalize="characters" autocomplete="off">
+  <div class="hint">Tous les joueurs saisissent le même code.</div>
+  <div class="row" style="margin-top:18px"><button id="go">Créer / rejoindre</button></div>
+  <div class="err" id="homeErr"></div>
+</div>
+
+<!-- LOBBY -->
+<div id="lobby" class="screen">
+  <h1>Préparer la partie</h1>
+  <div class="hint" id="lobbyCode"></div>
+  <h2>Ajouter un joueur</h2>
+  <div class="row">
+    <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
+    <input id="pcolor" type="color" value="#e53935">
+  </div>
+  <div class="row"><button id="addP" class="sec">+ Ajouter</button></div>
+  <h2>Ordre de passage</h2>
+  <div id="plist"></div>
+  <h2>Options</h2>
+  <label class="opt"><input type="checkbox" id="optHurry"><span>Mode « Plus vite ! »<br><small style="opacity:.6">Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small></span></label>
+  <div class="row" style="margin-top:16px"><button id="start" disabled>Lancer la partie</button></div>
+  <div class="err" id="lobbyErr"></div>
+</div>
+
+<!-- QUI ES-TU -->
+<div id="who" class="screen">
+  <h1>Qui es-tu ?</h1>
+  <div id="whoList"></div>
+</div>
+
+<!-- JEU -->
+<div id="game" class="screen">
+  <div id="strip"></div>
+  <div id="turnno"></div>
+  <div id="main">
+    <div id="big"></div>
+    <div id="sub"></div>
+    <button id="done">J'ai fini ✓</button>
+  </div>
+  <div id="foot">
+    <div id="myname"></div>
+    <button id="rew">⏪ Rewind : revenir à mon dernier tour</button>
+  </div>
+  <div id="tapc"></div>
+  <button id="quit">changer de partie</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ============ À REMPLIR : configuration Firebase ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCYPzTEY07lK1LHA8y-I8YYEMBvFIpoZhg",
+  databaseURL: "https://hisaux-atoi-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "hisaux-atoi"
+};
+/* ============================================================ */
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const $ = id => document.getElementById(id);
+
+let code = null, ref = null, g = null, meIdx = null;
+let prevCurrent = null, myTurnSince = 0, rewTimer = null;
+let srvOff = 0, expiringFor = null, tapcTimer = null;
+const taps = [];
+db.ref('.info/serverTimeOffset').on('value', s => { srvOff = s.val() || 0; });
+const nowS = () => Date.now() + srvOff;
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+}
+function textOn(hex){
+  const n = parseInt(hex.slice(1), 16), r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
+  return (0.299*r + 0.587*gg + 0.114*b) > 150 ? '#111' : '#fff';
+}
+const players = () => (g && g.players) || [];
+
+/* ---------- Accueil ---------- */
+function join(c){
+  code = c.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+  if (!code){ $('homeErr').textContent = 'Saisis un code (lettres/chiffres).'; return; }
+  localStorage.setItem('tour_code', code);
+  const saved = localStorage.getItem('tour_me_' + code);
+  meIdx = saved === null ? null : parseInt(saved, 10);
+  if (ref) ref.off();
+  ref = db.ref('games/' + code);
+  ref.on('value', snap => {
+    g = snap.val() || {players: [], current: 0, turn: 1, started: false};
+    render();
+  }, err => { $('homeErr').textContent = 'Erreur Firebase : ' + err.message; show('home'); });
+}
+$('go').onclick = () => join($('code').value);
+$('code').addEventListener('keydown', e => { if (e.key === 'Enter') join($('code').value); });
+$('quit').onclick = () => {
+  if (ref) ref.off(); ref = null; g = null;
+  localStorage.removeItem('tour_code');
+  show('home');
+};
+
+/* ---------- Rendu global ---------- */
+function render(){
+  if (!g.started) return renderLobby();
+  if (meIdx === null || meIdx >= players().length) return renderWho();
+  renderGame();
+}
+
+/* ---------- Lobby ---------- */
+function renderLobby(){
+  show('lobby');
+  $('lobbyCode').textContent = 'Partie : ' + code + ' — les autres joueurs peuvent rejoindre avec ce code.';
+  const list = players(), box = $('plist');
+  box.innerHTML = '';
+  list.forEach((p, i) => {
+    const d = document.createElement('div'); d.className = 'pl';
+    d.innerHTML = `<div class="dot" style="background:${p.color}"></div><div class="nm">${i+1}. ${p.name.replace(/</g,'&lt;')}</div>`;
+    const up = document.createElement('button'); up.textContent = '↑'; up.disabled = i === 0;
+    up.onclick = () => move(i, -1);
+    const dn = document.createElement('button'); dn.textContent = '↓'; dn.disabled = i === list.length - 1;
+    dn.onclick = () => move(i, 1);
+    const rm = document.createElement('button'); rm.textContent = '✕';
+    rm.onclick = () => { const a = list.slice(); a.splice(i, 1); ref.child('players').set(a); };
+    d.append(up, dn, rm); box.append(d);
+  });
+  $('start').disabled = list.length < 2;
+  $('optHurry').checked = !!(g.options && g.options.hurry);
+}
+function move(i, d){
+  const a = players().slice(), j = i + d;
+  [a[i], a[j]] = [a[j], a[i]];
+  ref.child('players').set(a);
+}
+$('addP').onclick = () => {
+  const name = $('pname').value.trim();
+  if (!name){ $('lobbyErr').textContent = 'Saisis un prénom.'; return; }
+  $('lobbyErr').textContent = '';
+  const a = players().slice();
+  a.push({name, color: $('pcolor').value});
+  ref.child('players').set(a);
+  $('pname').value = '';
+  const palette = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
+  $('pcolor').value = palette[a.length % palette.length];
+};
+$('start').onclick = () => ref.update({started: true, current: 0, turn: 1});
+
+/* ---------- Qui es-tu ? ---------- */
+function renderWho(){
+  show('who');
+  const box = $('whoList'); box.innerHTML = '';
+  players().forEach((p, i) => {
+    const b = document.createElement('button');
+    b.textContent = p.name;
+    b.style.cssText = `display:block;width:100%;margin:10px 0;padding:22px;font-size:24px;background:${p.color};color:${textOn(p.color)}`;
+    b.onclick = () => { meIdx = i; localStorage.setItem('tour_me_' + code, i); render(); };
+    box.append(b);
+  });
+}
+
+/* ---------- Jeu ---------- */
+function renderGame(){
+  show('game');
+  const list = players(), n = list.length;
+  const cur = g.current % n, me = list[meIdx], act = list[cur];
+  const mine = cur === meIdx;
+  const gs = $('game');
+
+  // pastilles d'ordre
+  $('strip').innerHTML = list.map((p, i) =>
+    `<div class="chip ${i === cur ? 'act' : ''}" style="background:${p.color}"></div>`).join('');
+  $('turnno').textContent = 'Tour ' + (g.turn || 1);
+
+  $('myname').textContent = me.name;
+  $('myname').style.color = mine ? textOn(me.color) : '#fff';
+
+  const al = (g.alarm && g.alarm.turn === g.turn) ? g.alarm : null;
+  const rem = al ? Math.max(0, Math.ceil((al.until - nowS()) / 1000)) : 0;
+  if (prevCurrent !== cur){ taps.length = 0; $('tapc').textContent = ''; }
+
+  if (mine){
+    gs.style.background = me.color;
+    gs.style.color = textOn(me.color);
+    $('done').style.display = '';
+    if (al){
+      gs.classList.remove('flash'); gs.classList.add('alarm');
+      $('big').textContent = 'DÉPÊCHE-TOI !';
+      $('sub').textContent = 'Ton tour sera passé dans ' + rem + ' s';
+    } else {
+      gs.classList.remove('alarm');
+      $('big').textContent = 'À TOI !';
+      $('sub').textContent = 'Touche l\'écran quand tu as fini';
+      if (prevCurrent !== cur){
+        myTurnSince = Date.now();
+        gs.classList.remove('flash'); void gs.offsetWidth; gs.classList.add('flash');
+        if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
+      }
+    }
+  } else {
+    gs.classList.remove('flash'); gs.classList.remove('alarm');
+    gs.style.background = '#111';
+    gs.style.color = '#fff';
+    $('big').innerHTML = `<span style="color:${act.color}">${act.name.replace(/</g,'&lt;')}</span>`;
+    $('sub').textContent = al ? ('⏰ trop lent ! tour passé dans ' + rem + ' s') : 'est en train de jouer';
+    $('done').style.display = 'none';
+  }
+  prevCurrent = cur;
+}
+
+function endTurn(){
+  if (!g || !g.started || meIdx === null) return;
+  const n = players().length, me = meIdx;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if ((cur.current % n) !== me) return;           // plus mon tour : on annule
+    cur.current = (cur.current + 1) % n;
+    cur.turn = (cur.turn || 1) + 1;
+    cur.alarm = null; cur.hurry = null;
+    return cur;
+  });
+}
+$('done').onclick = e => { e.stopPropagation(); endTurn(); };
+$('main').onclick = () => {
+  if (prevCurrent === meIdx && Date.now() - myTurnSince > 700) endTurn();   // garde anti-clic accidentel
+};
+
+/* ---------- Bouton secret : rewind ---------- */
+$('myname').onclick = e => {
+  e.stopPropagation();
+  $('rew').classList.add('on');
+  clearTimeout(rewTimer);
+  rewTimer = setTimeout(() => $('rew').classList.remove('on'), 6000);
+};
+$('rew').onclick = e => {
+  e.stopPropagation();
+  const n = players().length, me = meIdx;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    const c = cur.current % n;
+    const steps = ((c - me + n) % n) || n;           // nb de tours à reculer jusqu'à mon dernier passage
+    cur.current = me;
+    cur.turn = Math.max(1, (cur.turn || 1) - steps);
+    cur.alarm = null; cur.hurry = null;
+    return cur;
+  });
+  $('rew').classList.remove('on');
+};
+
+/* ---------- Option « Plus vite ! » ---------- */
+$('optHurry').onchange = e => { ref.child('options/hurry').set(e.target.checked); };
+
+// Chaque joueur (qui n'est pas actif) compte ses tapotements : 10 en 10 s => il envoie son « vote »
+$('game').addEventListener('pointerdown', e => {
+  if (!g || !g.started || meIdx === null || !(g.options && g.options.hurry)) return;
+  const n = players().length;
+  if (g.current % n === meIdx) return;                       // c'est mon tour : pas de vote
+  if (g.alarm && g.alarm.turn === g.turn) return;            // alarme déjà en cours
+  if (e.target.closest('#myname,#rew,#quit')) return;
+  const t = Date.now();
+  taps.push(t);
+  while (taps.length && t - taps[0] > 10000) taps.shift();
+  $('tapc').textContent = taps.length >= 3 ? ('⚡ ' + Math.min(taps.length, 10) + '/10') : '';
+  clearTimeout(tapcTimer); tapcTimer = setTimeout(() => { $('tapc').textContent = ''; }, 1500);
+  if (taps.length >= 10){ taps.length = 0; $('tapc').textContent = '⚡ Envoyé !'; sendHurry(); }
+});
+
+function sendHurry(){
+  const n = players().length, me = meIdx;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if (!cur.started) return;
+    const c = cur.current % n;
+    if (c === me) return;
+    if (cur.alarm && cur.alarm.turn === cur.turn) return;
+    const now = nowS();
+    cur.hurry = cur.hurry || {};
+    cur.hurry[me] = {t: now, turn: cur.turn};
+    let all = true;
+    for (let i = 0; i < n; i++){
+      if (i === c) continue;
+      const h = cur.hurry[i];
+      if (!h || h.turn !== cur.turn || now - h.t > 10000){ all = false; break; }
+    }
+    if (all){ cur.alarm = {player: c, turn: cur.turn, until: now + 30000}; cur.hurry = null; }
+    return cur;
+  });
+}
+
+// Fin de l'alarme : n'importe quel téléphone peut passer le tour (la transaction évite les doublons)
+function expireAlarm(){
+  const al = g && g.alarm;
+  if (!al || expiringFor === al.until) return;
+  expiringFor = al.until;
+  const n = players().length;
+  ref.transaction(cur => {
+    if (!cur || !cur.alarm) return cur;
+    if (cur.alarm.turn !== cur.turn || nowS() < cur.alarm.until - 1000) return;
+    cur.current = (cur.current + 1) % n;
+    cur.turn = (cur.turn || 1) + 1;
+    cur.alarm = null; cur.hurry = null;
+    return cur;
+  });
+}
+setInterval(() => {
+  if (!g || !g.started || meIdx === null || !g.alarm) return;
+  if (nowS() >= g.alarm.until) expireAlarm();
+  renderGame();   // met à jour le compte à rebours
+}, 500);
+
+/* ---------- Écran toujours allumé ---------- */
+let wl = null;
+async function keepAwake(){
+  try { if ('wakeLock' in navigator) wl = await navigator.wakeLock.request('screen'); } catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+document.addEventListener('click', keepAwake, {once: true});
+
+/* ---------- Reprise automatique ---------- */
+const last = localStorage.getItem('tour_code');
+if (last){ $('code').value = last; join(last); }
+</script>
+</body>
+</html>
