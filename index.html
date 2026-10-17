@@ -13,7 +13,7 @@
     --ink2:rgba(27,34,51,.6);
     --glass:rgba(255,255,255,.52);
     --edge:rgba(255,255,255,.85);
-    --lift:30vh; /* hauteur dont le nom du joueur est remonté depuis le bas */
+    --sz:min(86vw,360px,40vh); /* côté du stage carré */
     --bg:radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),
          radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),
          radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),
@@ -60,6 +60,10 @@
     border:1px solid lightgray;background:rgba(255,255,255,.62);color:var(--ink);
   }
   input:focus,input:focus-visible{outline:none;box-shadow:none}
+  input[type=text].bad{border-color:#d93025}
+  .h2row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+  .h2row h2{margin:0}
+  button.sm{font-size:13px;padding:6px 12px}
   input::placeholder{color:rgba(27,34,51,.4)}
   input[type=color]{width:54px;height:54px;padding:4px;border:1px solid var(--edge);border-radius:50%;background:rgba(255,255,255,.62);flex:0 0 54px;cursor:pointer}
   input[type=color]::-webkit-color-swatch-wrapper{padding:0}
@@ -92,7 +96,7 @@
 
   /* préparation */
   .codebox{margin:0 0 10px}
-  .codeval{font-size:36px;font-weight:700;letter-spacing:.04em;text-align:center;margin-top:2px;word-break:break-all}
+  .codeval{font-size:36px;font-weight:700;letter-spacing:.04em;text-align:center;margin:8px 0 6px;word-break:break-all}
   .pl{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:10px 0;border-radius:22px;
     background:rgba(255,255,255,.55);border:1px solid var(--edge);
     -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
@@ -112,8 +116,10 @@
   #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;opacity:.55;transition:transform .2s,opacity .2s}
   #strip .chip.act{opacity:1;transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
   #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px}
-  #main{flex:1;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;padding:20px}
-  #wait{max-width:min(92vw,420px);text-align:center;justify-content:center;font-size:16px;font-weight:600;line-height:1.3;border-radius:22px}
+  /* stage centré verticalement dans l'écran ; « en attente » est posé au-dessus sans le décaler */
+  #main{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0}
+  #wait{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(50% + var(--sz)/2 + 14px);
+    width:max-content;max-width:min(92vw,420px);text-align:center;justify-content:center;font-size:16px;font-weight:600;line-height:1.3;border-radius:22px}
   #big.num{font-size:120px;line-height:1}
   #big.msg{font-size:30px;line-height:1.15}
   #rwfx{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -123,14 +129,15 @@
   #rwfx svg{width:130px;height:130px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:ccw .8s linear infinite}
   #rwtxt{font-size:19px;font-weight:500;opacity:.9}
   /* le stage est un carré */
-  #stage{width:min(86vw,360px,40vh);aspect-ratio:1/1;padding:20px;
+  #stage{width:var(--sz);aspect-ratio:1/1;padding:20px;
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
     transition:transform .12s}
   #stage.tap{cursor:pointer}
   #stage.tap:active{transform:scale(.985)}
   #big{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.05;overflow-wrap:anywhere}
   #sub{font-size:19px;margin-top:12px;color:inherit;opacity:.8;font-weight:500}
-  #foot{padding:14px 20px 0;margin-bottom:var(--lift);text-align:center}
+  /* le nom est à mi-chemin entre le bas du stage et le bas de l'écran : 75% + (taille du stage)/4 */
+  #foot{position:absolute;left:50%;top:calc(75% + var(--sz)/4);transform:translate(-50%,-50%);z-index:3;text-align:center}
   /* le nom prend la couleur du joueur, le texte s'adapte pour rester lisible */
   #myname{font-size:19px;font-weight:700;padding:10px 20px;user-select:none;-webkit-user-select:none;cursor:pointer;
     background:var(--pc,rgba(255,255,255,.55));color:var(--pt,var(--ink))}
@@ -165,10 +172,9 @@
   <div class="wrap">
     <h1>C'est à qui de jouer ?</h1>
     <div class="glass card">
-      <label class="lab" for="code">Code de la partie</label>
+      <label class="lab" for="code">Nom de la table</label>
       <input id="code" type="text" placeholder="ex. TABLE7" autocapitalize="characters" autocomplete="off">
-      <div class="hint">Saisis un code (lettres/chiffres)</div>
-      <div class="row" style="margin-top:16px"><button id="go" class="pri">Créer / rejoindre</button></div>
+      <div class="row" style="margin-top:16px"><button id="go" class="pri" disabled>En attente</button></div>
       <div class="err" id="homeErr"></div>
     </div>
   </div>
@@ -177,12 +183,7 @@
 <!-- PRÉPARATION -->
 <div id="lobby" class="screen">
   <div class="wrap">
-    <h1>Préparation</h1>
-
-    <div class="codebox">
-      <div class="hint ctr">Les autres joueurs peuvent rejoindre avec le code :</div>
-      <div class="codeval" id="lobbyCode"></div>
-    </div>
+    <div class="codeval" id="lobbyCode"></div>
 
     <div class="glass card">
       <h2>Ajouter un joueur</h2>
@@ -195,17 +196,20 @@
     </div>
 
     <div class="glass card">
-      <h2>Ordre de passage</h2>
+      <div class="h2row">
+        <h2>Ordre de passage</h2>
+        <button id="rand" class="pri sm" disabled>1er joueur au hasard</button>
+      </div>
       <div id="plist"></div>
-      <div class="row"><button id="rand" disabled>1er joueur au hasard</button></div>
     </div>
 
     <div class="glass card">
       <h2>Option</h2>
+      <label class="opt"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
       <label class="opt"><input type="checkbox" id="optHurry"><span>Mode « Plus vite ! »<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small></span></label>
     </div>
 
-    <div class="row" style="margin-top:16px"><button id="start" class="pri" disabled>Lancer la partie</button></div>
+    <div class="row" style="margin-top:16px"><button id="start" class="pri" disabled>Rejoindre</button></div>
   </div>
 </div>
 
@@ -336,14 +340,14 @@ function claimedCount(){
 /* ---------- Accueil ---------- */
 function join(c){
   code = c.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
-  if (!code){ $('homeErr').textContent = 'Saisis un code (lettres/chiffres).'; return; }
+  if (!code){ $('code').classList.add('bad'); return; }      // champ vide : bordure rouge, sans texte
   localStorage.setItem('tour_code', code);
   $('homeErr').textContent = '';
   meIdx = null;
-  hadData = false; creating = false; fxInit = false; lastFx = null; lastWaiting = false;
-  if (ref) ref.off();
+  hadData = false; creating = false; fxInit = false; lastFx = null; lastWaiting = false; proceeded = false;
+  if (ref && gameCb) ref.off('value', gameCb);
   ref = db.ref('games/' + code);
-  ref.on('value', snap => {
+  gameCb = snap => {
     const v = snap.val();
     if (v && v.ended){
       // la partie a été terminée : tout le monde revient à l'accueil
@@ -357,7 +361,7 @@ function join(c){
         // l'administrateur crée la table, puis la signale aux autres téléphones
         if (!creating){
           creating = true;
-          ref.update({current: 0, turn: 1, started: false})
+          ref.update({current: 0, turn: 1, started: false, options: {rewind: true}})
             .then(() => db.ref('lobby').set({code: code, t: firebase.database.ServerValue.TIMESTAMP}).catch(() => {}))
             .catch(e => { const m = e.message; leaveGame(); $('homeErr').textContent = 'Erreur : ' + m; });
         }
@@ -380,10 +384,33 @@ function join(c){
     }
     g = v;
     render();
-  }, err => { $('homeErr').textContent = 'Erreur Firebase : ' + err.message; show('home'); });
+  };
+  ref.on('value', gameCb, err => { $('homeErr').textContent = 'Erreur Firebase : ' + err.message; show('home'); });
 }
 let creating = false, fxInit = false, lastFx = null, lastWaiting = false, waiting = false, fxTimer = null;
-const isAdmin = () => { try { return !!(firebase.auth && firebase.auth().currentUser); } catch(e){ return false; } };
+let gameCb = null, proceeded = false, tableExists = false, lobbyWatch = null, lobbyCb = null;
+
+// bouton de la page de garde : admin = « Créer la table », joueur = « En attente » puis « Rejoindre »
+function updateHome(){
+  const b = $('go');
+  if (isAdmin()){ b.textContent = 'Créer la table'; b.disabled = false; }
+  else if (tableExists){ b.textContent = 'Rejoindre'; b.disabled = false; }
+  else { b.textContent = 'En attente'; b.disabled = true; }
+}
+// admin = UID présent dans /admins de la base (les règles Firebase font foi côté serveur)
+let adminFlag = false;
+const isAdmin = () => adminFlag;
+try {
+  firebase.auth().onAuthStateChanged(u => {
+    adminFlag = false;
+    if (!u) return;
+    db.ref('admins/' + u.uid).once('value').then(s => {
+      adminFlag = !!s.val();
+      updateHome();
+      if (g && ref) render();            // les droits admin changent l'affichage de la préparation
+    }).catch(() => {});
+  });
+} catch (e) {}
 function playRewind(name){
   $('rwtxt').textContent = name ? name + ' revient en arrière' : '';
   $('rwfx').classList.add('on');
@@ -392,31 +419,40 @@ function playRewind(name){
   fxTimer = setTimeout(() => $('rwfx').classList.remove('on'), 2000);
 }
 
-// quand l'administrateur crée une table, le champ code des autres accueils se remplit tout seul
+// quand l'administrateur crée une table : le champ « nom de la table » des joueurs se remplit
+// et leur bouton passe de « En attente » à « Rejoindre »
 db.ref('lobby').on('value', s => {
   const v = s.val();
-  if (!v || !v.code) return;
-  db.ref('games/' + v.code).once('value').then(gs => {
+  if (lobbyWatch && lobbyCb){ lobbyWatch.off('value', lobbyCb); lobbyWatch = null; }
+  if (!v || !v.code){ tableExists = false; updateHome(); return; }
+  lobbyWatch = db.ref('games/' + v.code);
+  lobbyCb = gs => {
     const x = gs.val();
-    if (x && !x.ended && $('home').classList.contains('on')) $('code').value = v.code;
-  }).catch(() => {});
+    tableExists = !!(x && !x.ended);
+    if (tableExists && !isAdmin() && $('home').classList.contains('on')) $('code').value = v.code;
+    updateHome();
+  };
+  lobbyWatch.on('value', lobbyCb, () => {});
 }, () => {});
 function leaveGame(){
-  if (ref) ref.off();
-  ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null;
+  if (ref && gameCb) ref.off('value', gameCb);
+  ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null; proceeded = false;
   disarm();
   localStorage.removeItem('tour_code');
   $('code').value = '';
   show('home');
+  updateHome();
 }
 $('go').onclick = () => join($('code').value);
-$('code').addEventListener('keydown', e => { if (e.key === 'Enter') join($('code').value); });
+$('code').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('go').disabled) join($('code').value); });
+$('code').addEventListener('input', () => { $('code').classList.remove('bad'); $('homeErr').textContent = ''; });
 $('back').onclick = () => leaveGame();
 
 /* ---------- Rendu global ---------- */
 function render(){
   if (!g.started) return renderLobby();
   meIdx = myIdx();
+  if (meIdx === null && !proceeded) return renderLobby();   // pas encore « Rejoindre »
   if (meIdx === null || meIdx >= players().length) return renderWho();
   renderGame();
 }
@@ -425,6 +461,7 @@ function render(){
 function renderLobby(){
   show('lobby');
   $('lobbyCode').textContent = code;
+  const adm = isAdmin();
   const list = players(), box = $('plist');
   box.innerHTML = '';
   if (!list.length){
@@ -439,11 +476,18 @@ function renderLobby(){
     dn.onclick = () => move(i, 1);
     const rm = document.createElement('button'); rm.textContent = '✕';
     rm.onclick = () => { const a = list.slice(); a.splice(i, 1); ref.child('players').set(a); };
-    d.append(up, dn, rm); box.append(d);
+    if (adm) d.append(up, dn);          // seul l'admin change l'ordre
+    d.append(rm); box.append(d);
   });
-  $('start').disabled = list.length < 2;
+  // admin : « Lancer la partie » ; joueurs : « Rejoindre », actif une fois la partie lancée
+  const sb = $('start');
+  if (adm && !g.started){ sb.textContent = 'Lancer la partie'; sb.disabled = list.length < 2; }
+  else { sb.textContent = 'Rejoindre'; sb.disabled = !g.started; }
+  $('rand').style.display = adm ? '' : 'none';
   $('rand').disabled = list.length < 2;
   $('optHurry').checked = !!(g.options && g.options.hurry);
+  $('optRewind').checked = !!(g.options && g.options.rewind);
+  $('optHurry').disabled = $('optRewind').disabled = !adm;     // seul l'admin change les options
   // si la couleur proposée vient d'être prise (par moi ou un autre téléphone), on en propose une libre
   if (list.some(p => String(p.color).toLowerCase() === $('pcolor').value.toLowerCase())) $('pcolor').value = freeColor();
 }
@@ -486,7 +530,12 @@ $('addP').onclick = addPlayer;
 $('pname').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addPlayer(); } });
 $('pname').addEventListener('input', () => nameErr(''));
 $('pcolor').addEventListener('input', () => nameErr(''));
-$('start').onclick = () => ref.update({started: true, current: 0, turn: 1});
+$('start').onclick = () => {
+  if (!g) return;
+  if (!g.started){
+    if (isAdmin() && players().length >= 2){ proceeded = true; ref.update({started: true, current: 0, turn: 1}); }
+  } else { proceeded = true; render(); }
+};
 
 /* ---------- Qui es-tu ? ---------- */
 function claim(i){
@@ -653,6 +702,7 @@ $('end').onclick = () => {
 // Une seule fois par joueur et par partie ; impossible tant qu'on n'a pas joué (Tour 1)
 function canRewind(){
   if (!g || !g.started || meIdx === null) return false;
+  if (!(g.options && g.options.rewind)) return false;         // option désactivée par l'admin
   const n = players().length, me = meIdx;
   if (g.rw && g.rw[me]) return false;                         // déjà utilisé
   const c = g.current % n, steps = ((c - me + n) % n) || n;
@@ -671,6 +721,7 @@ function doRewind(){
   const n = players().length, me = meIdx;
   ref.transaction(cur => {
     if (!cur) return cur;
+    if (!(cur.options && cur.options.rewind)) return;
     if (cur.rw && cur.rw[me]) return;                          // déjà utilisé
     const c = cur.current % n;
     const steps = ((c - me + n) % n) || n;                    // nb de passages à reculer jusqu'à mon dernier tour
@@ -686,6 +737,7 @@ function doRewind(){
 $('myname').onclick = e => {
   e.stopPropagation();
   if (rwBusy) return;
+  if (!(g && g.options && g.options.rewind)) return;          // pas de rewind dans cette partie
   if (!armed){
     if (!canRewind()){ shake(); return; }
     armed = true;
@@ -701,7 +753,8 @@ $('myname').onclick = e => {
 };
 
 /* ---------- Option « Plus vite ! » ---------- */
-$('optHurry').onchange = e => { ref.child('options/hurry').set(e.target.checked); };
+$('optHurry').onchange = e => { if (isAdmin()) ref.child('options/hurry').set(e.target.checked); };
+$('optRewind').onchange = e => { if (isAdmin()) ref.child('options/rewind').set(e.target.checked); };
 
 // Chaque joueur (qui n'est pas actif) compte ses tapotements : 10 en 10 s => il envoie son « vote »
 $('game').addEventListener('pointerdown', e => {
@@ -775,6 +828,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 document.addEventListener('click', keepAwake, {once: true});
 
 /* ---------- Reprise automatique ---------- */
+updateHome();
 const last = localStorage.getItem('tour_code');
 if (last){ $('code').value = last; join(last); }
 </script>
@@ -794,11 +848,12 @@ if (last){ $('code').value = last; join(last); }
     if (count === 3) { count = 0; loginAsAdmin(); }
   });
 
-  function showUid(uid) {
+  function showUid(uid, isAdm) {
     let el = document.getElementById('adminInfo');
     let del = document.getElementById('adminDel');
     if (!uid) { if (el) el.remove(); if (del) del.remove(); return; }
-    if (!del) {
+    if (!isAdm && del) { del.remove(); del = null; }
+    if (isAdm && !del) {
       del = document.createElement('button');
       del.id = 'adminDel';
       del.textContent = 'Supprimer les parties en cours';
@@ -819,7 +874,15 @@ if (last){ $('code').value = last; join(last); }
       el.style.cssText = 'margin:12px 0;text-align:center;font-size:13px;color:rgba(27,34,51,.6);user-select:text;-webkit-user-select:text;word-break:break-all';
       document.querySelector('#home .wrap').appendChild(el);
     }
-    el.textContent = 'Administrateur connecté — UID : ' + uid;
+    el.textContent = (isAdm ? 'Administrateur connecté' : 'Connecté (non administrateur)') + ' — UID : ' + uid;
+  }
+  // le bouton admin n'apparaît que si l'UID figure dans /admins
+  function refresh(u) {
+    if (!u) { showUid(null); return; }
+    showUid(u.uid, false);
+    db.ref('admins/' + u.uid).once('value')
+      .then(s => showUid(u.uid, !!s.val()))
+      .catch(() => showUid(u.uid, false));
   }
 
   function loginAsAdmin() {
@@ -828,13 +891,13 @@ if (last){ $('code').value = last; join(last); }
       return;
     }
     const auth = firebase.auth();
-    if (auth.currentUser) { showUid(auth.currentUser.uid); return; }
+    if (auth.currentUser) { refresh(auth.currentUser); return; }
     auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
       .catch(e => alert('Erreur de connexion Google :\n' + e.code + '\n' + e.message));
   }
 
   if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
-    firebase.auth().onAuthStateChanged(u => showUid(u ? u.uid : null));
+    firebase.auth().onAuthStateChanged(u => refresh(u));
   }
 })();
 </script>
