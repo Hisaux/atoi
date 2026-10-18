@@ -95,7 +95,6 @@
   .hint.ctr{text-align:center}
 
   /* préparation */
-  .codebox{margin:0 0 10px}
   .codeval{font-size:36px;font-weight:700;letter-spacing:.04em;text-align:center;margin:8px 0 6px;word-break:break-all}
   .pl{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:10px 0;border-radius:22px;
     background:rgba(255,255,255,.55);border:1px solid var(--edge);
@@ -104,37 +103,31 @@
   .pl .dot{width:30px;height:30px;border-radius:50%;flex:0 0 30px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
   .pl .nm{flex:1;font-size:18px;font-weight:600}
   .pl button{padding:8px 13px;font-size:16px;border-radius:14px}
-  label.opt{display:flex;align-items:flex-start;gap:14px;padding:16px;font-size:17px;font-weight:600;line-height:1.3}
+  label.opt{display:flex;align-items:flex-start;gap:14px;padding:12px 4px;font-size:17px;font-weight:600;line-height:1.3;cursor:pointer}
   label.opt input{flex:0 0 26px;width:26px;height:26px;margin:-2px 0 0;accent-color:#2d69eb}
   label.opt small{font-weight:400;color:var(--ink2);font-size:14px}
+  /* picto « 1er joueur » (drapeau) */
+  .fl{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-left:6px}
 
   /* écran de jeu */
   #game{padding:0}
   #gback{position:fixed;top:max(14px,env(safe-area-inset-top));left:14px;z-index:5}
-  #top{display:flex;flex-direction:column;align-items:center;gap:10px;padding:max(16px,env(safe-area-inset-top)) 14px 0}
+  #top{display:flex;flex-direction:column;align-items:center;gap:10px;padding:max(16px,env(safe-area-inset-top)) 14px 0;position:relative;z-index:4}
   #strip{padding:9px 14px;gap:9px;flex-wrap:wrap;justify-content:center}
-  #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;opacity:.55;transition:transform .2s,opacity .2s}
-  #strip .chip.act{opacity:1;transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
-  #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px}
+  #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;transition:transform .2s,opacity .2s}
+  #strip .chip .fl{width:12px;height:12px;margin:0;stroke-width:2.6}
+  #strip .chip.dim{opacity:.3}
+  #strip .chip.act{transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
+  #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px;cursor:pointer}
+  #timer{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px;font-variant-numeric:tabular-nums}
   /* stage centré verticalement dans l'écran ; « en attente » est posé au-dessus sans le décaler */
   #main{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0}
   #wait{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(50% + var(--sz)/2 + 14px);
     width:max-content;max-width:min(92vw,420px);text-align:center;justify-content:center;font-size:16px;font-weight:600;line-height:1.3;border-radius:22px}
   #big.num{font-size:120px;line-height:1}
   #big.msg{font-size:30px;line-height:1.15}
-  #modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px;
-    background:rgba(27,34,51,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-  #modal.on{display:flex}
-  .mbox{width:min(100%,360px);padding:24px;text-align:center;background:rgba(255,255,255,.82)}
-  #mtext{font-size:17px;line-height:1.4;white-space:pre-line;word-break:break-word;margin-bottom:20px}
-  .mbtns{display:flex;gap:10px;justify-content:center}
-  .mbtns button{flex:1;padding:12px 16px}
-  #rwfx{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-    background:rgba(27,34,51,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;
-    font-size:28px;font-weight:700;text-align:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
-  #rwfx.on{opacity:1}
-  #rwfx svg{width:130px;height:130px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:ccw .8s linear infinite}
-  #rwtxt{font-size:19px;font-weight:500;opacity:.9}
+  #big.clock{font-size:54px;line-height:1.1;font-variant-numeric:tabular-nums}
+  #pass{position:absolute;left:50%;top:calc(50% + var(--sz)/2 + 14px);transform:translateX(-50%);z-index:3;font-size:15px;padding:8px 18px;white-space:nowrap}
   /* le stage est un carré */
   #stage{width:var(--sz);aspect-ratio:1/1;padding:20px;
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
@@ -164,7 +157,33 @@
   #end{position:fixed;right:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
     font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:#d93025}
 
-  /* clignotements : 1 fois par seconde, la couleur du joueur alterne avec une version pâle */
+  /* modales : messages (#modal) et fiches (#sheet : chronos, choix du 1er joueur, stats) */
+  #modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px;
+    background:rgba(27,34,51,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #modal.on{display:flex}
+  .mbox{width:min(100%,360px);padding:24px;text-align:center;background:rgba(255,255,255,.82)}
+  #mtext{font-size:17px;line-height:1.4;white-space:pre-line;word-break:break-word;margin-bottom:20px}
+  .mbtns{display:flex;gap:10px;justify-content:center}
+  .mbtns button{flex:1;padding:12px 16px}
+  #sheet{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:20px;
+    background:rgba(27,34,51,.4);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #sheet.on{display:flex}
+  .sbox{width:min(100%,420px);max-height:88vh;overflow:auto;padding:22px;background:rgba(255,255,255,.9);display:flex;flex-direction:column;gap:14px}
+  .sh-title{font-size:22px;font-weight:700;text-align:center}
+  .sh-sub{font-size:14px;color:var(--ink2);text-align:center;line-height:1.4}
+  table.stt{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+  .stt th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);text-align:left;padding:4px 6px;font-weight:700}
+  .stt td{padding:9px 6px;border-top:1px solid rgba(27,34,51,.08)}
+  .stt tr.tot td{font-weight:700}
+  .dot2{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;border:1px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);vertical-align:-1px}
+  #rwfx{position:fixed;z-index:50;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:rgba(27,34,51,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;
+    font-size:28px;font-weight:700;text-align:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+  #rwfx.on{opacity:1}
+  #rwfx svg{width:130px;height:130px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:ccw .8s linear infinite}
+  #rwtxt{font-size:19px;font-weight:500;opacity:.9}
+
+  /* clignotements : la couleur du joueur alterne avec une version pâle */
   .flash{animation:blink 1s steps(1) 3}
   @keyframes blink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
   .slow{animation:alarmblink 1s steps(1) infinite}
@@ -193,6 +212,14 @@
     <div class="codeval" id="lobbyCode"></div>
 
     <div class="glass card">
+      <h2>Mode de jeu</h2>
+      <label class="opt"><input type="radio" name="mode" value="seq"><span>Tour par tour<br><small>Chaque joueur sur son téléphone, à tour de rôle.</small></span></label>
+      <label class="opt"><input type="radio" name="mode" value="sim"><span>Simultané<br><small>Tout le monde joue en même temps et appuie sur « fini ».</small></span></label>
+      <label class="opt"><input type="radio" name="mode" value="ia"><span>Solo avec IA<br><small>Un seul téléphone : tours comptés, chrono par joueur et pour l'IA.</small></span></label>
+      <label class="opt"><input type="radio" name="mode" value="solo"><span>Solo sans IA<br><small>Juste l'interface de jeu avec un chrono.</small></span></label>
+    </div>
+
+    <div class="glass card">
       <h2>Ajouter un joueur</h2>
       <div class="row">
         <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
@@ -210,13 +237,16 @@
       <div id="plist"></div>
     </div>
 
-    <div class="glass card">
+    <div class="glass card" id="optCard">
       <h2>Option</h2>
-      <label class="opt"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
-      <label class="opt"><input type="checkbox" id="optHurry"><span>Mode « Plus vite ! »<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small></span></label>
+      <label class="opt" id="lblRewind"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
+      <label class="opt" id="lblHurry"><input type="checkbox" id="optHurry"><span id="hurryTxt"></span></label>
+      <label class="opt" id="lblRounds"><input type="checkbox" id="optRounds"><span>Jeu par manche<br><small>Bouton « Passer son tour » : la manche se termine pour ce joueur, les autres continuent jusqu'à ce que tout le monde ait passé.</small></span></label>
+      <label class="opt" id="lblRotate"><input type="checkbox" id="optRotate"><span>Changement de 1er joueur à chaque manche<br><small>En fin de manche, on choisit le nouveau 1er joueur et on peut réorganiser l'ordre.</small></span></label>
     </div>
 
     <div class="row" style="margin-top:16px"><button id="start" class="pri" disabled>Rejoindre</button></div>
+    <div class="hint ctr" id="startHint"></div>
   </div>
 </div>
 
@@ -235,6 +265,7 @@
   <div id="top">
     <div id="strip" class="pill"></div>
     <div id="turnno" class="pill"></div>
+    <div id="timer" class="pill"></div>
   </div>
   <div id="main">
     <div id="wait" class="pill" style="display:none"></div>
@@ -243,6 +274,7 @@
       <div id="sub"></div>
     </div>
   </div>
+  <button id="pass" style="display:none">Passer son tour</button>
   <div id="foot">
     <div id="myname" class="pill">
       <span class="nm"></span>
@@ -258,6 +290,14 @@
 
 <!-- Déconnexion : oublie la session sur cet appareil (hors page de garde) -->
 <button id="logout" class="link" style="display:none;position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:60">Déconnexion</button>
+
+<!-- Fiches : chronos, choix du 1er joueur, statistiques de fin -->
+<div id="sheet">
+  <div class="glass sbox">
+    <div id="sbody"></div>
+    <div class="mbtns"><button id="sok" class="pri">OK</button></div>
+  </div>
+</div>
 
 <!-- Modale des messages -->
 <div id="modal">
@@ -301,13 +341,14 @@ if (!dev){ dev = Math.random().toString(36).slice(2) + Date.now().toString(36); 
 
 let code = null, ref = null, g = null, meIdx = null, hadData = false;
 let prevCurrent = null, myTurnSince = 0, rewTimer = null, armed = false, rwBusy = false;
-let srvOff = 0, expiringFor = null, tapcTimer = null;
+let srvOff = 0, expiringFor = null, tapcTimer = null, iAmActive = false;
 const taps = [];
 db.ref('.info/serverTimeOffset').on('value', s => { srvOff = s.val() || 0; });
 const nowS = () => Date.now() + srvOff;
 
 const LIGHT = 'radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),#eef2fa';
 const PALETTE = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
+const FLAG = '<svg class="fl" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4L17 12H6"/></svg>';
 
 /* ---------- Messages en modale (remplacent alert / confirm) ---------- */
 function uiModal(msg, confirmMode, okLabel){
@@ -330,6 +371,18 @@ function uiModal(msg, confirmMode, okLabel){
 const uiAlert = msg => uiModal(msg, false);
 const uiConfirm = (msg, okLabel) => uiModal(msg, true, okLabel);
 
+/* ---------- Fiches (chronos, choix du 1er joueur, stats) ---------- */
+function setSheet(html, okLabel, onOk, closable){
+  const s = $('sheet');
+  $('sbody').innerHTML = html;
+  $('sbody').onclick = null;
+  $('sok').textContent = okLabel || 'OK';
+  $('sok').onclick = () => { if (onOk) onOk(); else closeSheet(); };
+  s.onclick = closable ? (e => { if (e.target === s) closeSheet(); }) : null;
+  s.classList.add('on');
+}
+function closeSheet(){ $('sheet').classList.remove('on'); $('sbody').onclick = null; }
+
 function show(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   $('logout').style.display = id === 'home' ? 'none' : '';
@@ -338,7 +391,7 @@ function show(id){
 $('logout').onclick = async () => {
   if (!await uiConfirm('Oublier ta session sur cet appareil et quitter la table ?', 'Déconnexion')) return;
   const r = ref, i = meIdx;
-  if (r && i !== null) r.child('claims/' + i).remove().catch(() => {});
+  if (r && i !== null && modeOf() !== 'solo' && modeOf() !== 'ia') r.child('claims/' + i).remove().catch(() => {});
   leaveGame();
 };
 function esc(s){
@@ -363,11 +416,12 @@ function hslHex(h, s, l){
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 const players = () => (g && g.players) || [];
+const modeOf = x => { x = x === undefined ? g : x; return (x && x.options && x.options.mode) || 'seq'; };
 const norm = s => String(s).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 // première couleur encore libre (palette d'abord, puis couleurs générées)
-function freeColor(){
-  const used = players().map(p => String(p.color).toLowerCase());
+function freeColorFrom(list){
+  const used = list.map(p => String(p.color).toLowerCase());
   for (const c of PALETTE) if (!used.includes(c)) return c;
   for (let h = 15, i = 0; i < 360; i++, h = (h + 47) % 360){
     const c = hslHex(h, 70, 50);
@@ -375,6 +429,7 @@ function freeColor(){
   }
   return '#888888';
 }
+const freeColor = () => freeColorFrom(players());
 
 // quel joueur ce téléphone a-t-il choisi ?
 function myIdx(){
@@ -384,7 +439,114 @@ function myIdx(){
 }
 function claimedCount(){
   const c = (g && g.claims) || {}, n = players().length;
-  return Object.keys(c).filter(k => +k < n).length;
+  let k = 0;
+  for (let i = 0; i < n; i++) if (c[i] != null) k++;
+  return k;
+}
+
+/* ---------- Chronos ---------- */
+function fmt(ms){
+  const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  const p = v => String(v).padStart(2, '0');
+  return (h ? h + ':' + p(m) : p(m)) + ':' + p(x);
+}
+function elapsed(i, v){
+  v = v || g;
+  const tm = (v && v.tm) || {};
+  const a = (tm.acc || {})[i] || 0, r = (tm.run || {})[i];
+  return a + (r != null ? Math.max(0, nowS() - r) : 0);
+}
+function totalMs(v){
+  v = v || g;
+  const tm = (v && v.tm) || {};
+  return (tm.totAcc || 0) + (tm.totRun != null ? Math.max(0, nowS() - tm.totRun) : 0);
+}
+
+/* ============================================================
+   Moteur de partie : fonctions appliquées DANS les transactions
+   (elles modifient l'objet « cur » = toute la partie)
+   ============================================================ */
+
+// Qui est chronométré ? Seuls les joueurs « en train de jouer » (le joueur actif, ou en simultané
+// tous ceux qui n'ont pas fini). Pause pendant le choix du 1er joueur.
+function applyTiming(cur, now){
+  const n = (cur.players || []).length;
+  const tm = cur.tm = cur.tm || {};
+  tm.acc = tm.acc || {}; tm.run = tm.run || {};
+  const should = {};
+  if (cur.go && !cur.ended && !cur.reorder){
+    if (modeOf(cur) === 'sim'){
+      for (let i = 0; i < n; i++) if (!(cur.done && cur.done[i])) should[i] = 1;
+    } else should[cur.current % n] = 1;
+  }
+  for (const k in tm.run){
+    if (tm.run[k] == null) continue;
+    if (!should[k]){ tm.acc[k] = (tm.acc[k] || 0) + now - tm.run[k]; tm.run[k] = null; }
+  }
+  for (const k in should) if (tm.run[k] == null) tm.run[k] = now;
+  // chrono total de la partie
+  if (cur.go && !cur.ended){ if (tm.totRun == null) tm.totRun = now; }
+  else if (tm.totRun != null){ tm.totAcc = (tm.totAcc || 0) + now - tm.totRun; tm.totRun = null; }
+}
+
+// passage au joueur suivant. kind : 'play' (j'ai fini), 'pass' (je passe la manche), 'skip' (tour passé par « Plus vite »)
+function advance(cur, kind, now){
+  const n = cur.players.length, c = cur.current % n, o = cur.options || {};
+  const log = cur.log || []; log.push({p: c, a: kind}); cur.log = log;
+  cur.turn = (cur.turn || 1) + 1;
+  cur.alarm = null; cur.hurry = null;
+  if (kind === 'pass'){ cur.passed = cur.passed || {}; cur.passed[c] = true; }
+  let next = null, end = false;
+  if (o.rounds){
+    for (let s = 1; s <= n; s++){ const j = (c + s) % n; if (!(cur.passed && cur.passed[j])){ next = j; break; } }
+    if (next === null) end = true;                           // tout le monde a passé : fin de manche
+  } else {
+    next = (c + 1) % n;
+    if (next === 0) end = true;                              // tout le monde a joué : fin de manche
+  }
+  if (end){
+    cur.round = (cur.round || 1) + 1;
+    if (o.rounds || o.rotate) cur.log = null;
+    cur.passed = null;
+    cur.current = 0;
+    if (o.rotate) cur.reorder = {round: cur.round};          // choix du 1er joueur, chronos en pause
+  } else cur.current = next;
+  applyTiming(cur, now);
+}
+
+// simultané : le joueur i a fini
+function finishSim(cur, i, now){
+  const n = cur.players.length;
+  cur.done = cur.done || {}; cur.done[i] = true;
+  cur.alarm = null; cur.hurry = null;
+  const left = [];
+  for (let k = 0; k < n; k++) if (!cur.done[k]) left.push(k);
+  if (!left.length){
+    cur.round = (cur.round || 1) + 1; cur.turn = (cur.turn || 1) + 1; cur.done = null;   // nouvelle manche
+  } else if (left.length === 1 && cur.options && cur.options.hurry){
+    // « plus vite » automatique sur le dernier joueur
+    cur.alarm = {player: left[0], turn: cur.turn, until: now + 30000};
+    cur.st = cur.st || {}; cur.st.hurry = cur.st.hurry || {};
+    cur.st.hurry[left[0]] = (cur.st.hurry[left[0]] || 0) + 1;
+  }
+  applyTiming(cur, now);
+}
+
+// réorganisation des joueurs : toutes les données indexées par joueur suivent
+function remapMap(m, perm){
+  if (!m) return null;
+  const o = {}; let any = false;
+  perm.forEach((old, nw) => { if (m[old] != null){ o[nw] = m[old]; any = true; } });
+  return any ? o : null;
+}
+function applyReorder(cur, perm, now){
+  cur.players = perm.map(o => cur.players[o]);
+  ['claims', 'rw', 'passed', 'done', 'hurry'].forEach(k => { cur[k] = remapMap(cur[k], perm); });
+  const tm = cur.tm = cur.tm || {};
+  tm.acc = remapMap(tm.acc, perm) || {}; tm.run = remapMap(tm.run, perm) || {};
+  if (cur.st) cur.st.hurry = remapMap(cur.st.hurry, perm);
+  cur.current = 0; cur.reorder = null; cur.log = null; cur.passed = null; cur.alarm = null; cur.skipped = null;
+  applyTiming(cur, now);
 }
 
 /* ---------- Accueil ---------- */
@@ -395,23 +557,25 @@ function join(c){
   $('homeErr').textContent = '';
   meIdx = null;
   hadData = false; creating = false; fxInit = false; lastFx = null; lastWaiting = false; proceeded = false;
+  statsOpen = false; reorderOpen = false;
   if (ref && gameCb) ref.off('value', gameCb);
   ref = db.ref('games/' + code);
   gameCb = snap => {
     const v = snap.val();
     if (v && v.ended){
-      // la partie a été terminée : tout le monde revient à l'accueil
-      if (hadData) leaveGame();
+      // la partie a été terminée : chacun voit les statistiques, puis revient à l'accueil
+      if (hadData){ g = v; showStats(v); }
       else ref.remove();                 // reste d'une ancienne partie : on nettoie
       return;
     }
     if (!v){
+      if (statsOpen) return;
       if (hadData){ leaveGame(); return; }          // la partie a été supprimée
       if (isAdmin()){
         // l'administrateur crée la table, puis la signale aux autres téléphones
         if (!creating){
           creating = true;
-          ref.update({current: 0, turn: 1, started: false, options: {rewind: true}})
+          ref.update({current: 0, turn: 1, round: 1, started: false, options: {rewind: true, mode: 'seq'}})
             .then(() => db.ref('lobby').set({code: code, t: firebase.database.ServerValue.TIMESTAMP}).catch(() => {}))
             .catch(e => { const m = e.message; leaveGame(); $('homeErr').textContent = 'Erreur : ' + m; });
         }
@@ -439,6 +603,7 @@ function join(c){
 }
 let creating = false, fxInit = false, lastFx = null, lastWaiting = false, waiting = false, fxTimer = null;
 let gameCb = null, proceeded = false, tableExists = false, lobbyWatch = null, lobbyCb = null;
+let statsOpen = false, reorderOpen = false, reorderRound = null, draft = null;
 
 // bouton de la page de garde : admin = « Créer la table », joueur = « En attente » puis « Rejoindre »
 function updateHome(){
@@ -457,7 +622,7 @@ try {
     db.ref('admins/' + u.uid).once('value').then(s => {
       adminFlag = !!s.val();
       updateHome();
-      if (g && ref) render();            // les droits admin changent l'affichage de la préparation
+      if (g && ref && !statsOpen) render();            // les droits admin changent l'affichage de la préparation
     }).catch(() => {});
   });
 } catch (e) {}
@@ -487,6 +652,8 @@ db.ref('lobby').on('value', s => {
 function leaveGame(){
   if (ref && gameCb) ref.off('value', gameCb);
   ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null; proceeded = false;
+  statsOpen = false; reorderOpen = false;
+  closeSheet();
   disarm();
   localStorage.removeItem('tour_code');
   $('code').value = '';
@@ -501,17 +668,27 @@ $('back').onclick = () => leaveGame();
 /* ---------- Rendu global ---------- */
 function render(){
   if (!g.started) return renderLobby();
+  const mode = modeOf(), n = players().length;
   meIdx = myIdx();
-  if (meIdx === null && !proceeded) return renderLobby();   // pas encore « Rejoindre »
-  if (meIdx === null || meIdx >= players().length) return renderWho();
+  if (mode === 'solo' || mode === 'ia'){
+    // un seul téléphone joue tous les joueurs : on incarne celui dont c'est le tour
+    if (meIdx === null) return renderLobby();
+    meIdx = g.current % n;
+  } else {
+    if (meIdx === null && !proceeded) return renderLobby();   // pas encore « Rejoindre »
+    if (meIdx === null || meIdx >= n) return renderWho();
+  }
   renderGame();
 }
 
 /* ---------- Préparation ---------- */
+const HURRY_SEQ = 'Mode « Plus vite ! »<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
+const HURRY_SIM = 'Mode « Plus vite ! » au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
 function renderLobby(){
   show('lobby');
   $('lobbyCode').textContent = code;
-  const adm = isAdmin();
+  const adm = isAdmin(), mode = modeOf();
+  const showFirst = mode === 'seq' || mode === 'ia';
   const list = players(), box = $('plist');
   box.innerHTML = '';
   if (!list.length){
@@ -519,7 +696,7 @@ function renderLobby(){
   }
   list.forEach((p, i) => {
     const d = document.createElement('div'); d.className = 'pl';
-    d.innerHTML = `<div class="dot" style="background:${p.color}"></div><div class="nm">${i+1}. ${esc(p.name)}</div>`;
+    d.innerHTML = `<div class="dot" style="background:${p.color}"></div><div class="nm">${i+1}. ${esc(p.name)}${i === 0 && showFirst ? FLAG : ''}</div>`;
     const up = document.createElement('button'); up.textContent = '↑'; up.disabled = i === 0;
     up.onclick = () => move(i, -1);
     const dn = document.createElement('button'); dn.textContent = '↓'; dn.disabled = i === list.length - 1;
@@ -529,15 +706,34 @@ function renderLobby(){
     if (adm) d.append(up, dn);          // seul l'admin change l'ordre
     d.append(rm); box.append(d);
   });
+
+  // mode de jeu et options (modifiables par l'admin seulement)
+  document.querySelectorAll('input[name=mode]').forEach(r => { r.checked = r.value === mode; r.disabled = !adm || !!g.started; });
+  const o = g.options || {};
+  $('optHurry').checked = !!o.hurry;
+  $('optRewind').checked = !!o.rewind;
+  $('optRounds').checked = !!o.rounds;
+  $('optRotate').checked = !!o.rotate;
+  ['optHurry', 'optRewind', 'optRounds', 'optRotate'].forEach(id => { $(id).disabled = !adm || !!g.started; });
+  const seqIa = mode === 'seq' || mode === 'ia';
+  $('lblRewind').style.display = seqIa ? '' : 'none';
+  $('lblHurry').style.display = (mode === 'seq' || mode === 'sim') ? '' : 'none';
+  $('lblRounds').style.display = seqIa ? '' : 'none';
+  $('lblRotate').style.display = seqIa ? '' : 'none';
+  $('optCard').style.display = mode === 'solo' ? 'none' : '';
+  $('hurryTxt').innerHTML = mode === 'sim' ? HURRY_SIM : HURRY_SEQ;
+  $('rand').style.display = adm && mode === 'seq' && !g.started ? '' : 'none';
+  $('rand').disabled = list.length < 2;
+
   // admin : « Lancer la partie » ; joueurs : « Rejoindre », actif une fois la partie lancée
   const sb = $('start');
-  if (adm && !g.started){ sb.textContent = 'Lancer la partie'; sb.disabled = list.length < 2; }
-  else { sb.textContent = 'Rejoindre'; sb.disabled = !g.started; }
-  $('rand').style.display = adm ? '' : 'none';
-  $('rand').disabled = list.length < 2;
-  $('optHurry').checked = !!(g.options && g.options.hurry);
-  $('optRewind').checked = !!(g.options && g.options.rewind);
-  $('optHurry').disabled = $('optRewind').disabled = !adm;     // seul l'admin change les options
+  let ok = true, hint = '';
+  if (mode === 'solo'){ ok = list.length === 1; if (list.length > 1) hint = 'Solo : un seul joueur.'; }
+  else if (mode === 'ia'){ ok = list.filter(p => !p.ai).length === 1; if (list.length > 1) hint = "Avec l'IA : un seul joueur (l'IA est ajoutée au lancement)."; }
+  else ok = list.length >= 2;
+  if (adm && !g.started){ sb.textContent = 'Lancer la partie'; sb.disabled = !ok; $('startHint').textContent = hint; }
+  else { sb.textContent = 'Rejoindre'; sb.disabled = !g.started || mode === 'solo' || mode === 'ia'; $('startHint').textContent = ''; }
+
   // si la couleur proposée vient d'être prise (par moi ou un autre téléphone), on en propose une libre
   if (list.some(p => String(p.color).toLowerCase() === $('pcolor').value.toLowerCase())) $('pcolor').value = freeColor();
 }
@@ -554,15 +750,26 @@ $('rand').onclick = () => {
   a.unshift(p);
   ref.child('players').set(a);
 };
+document.querySelectorAll('input[name=mode]').forEach(r => {
+  r.onchange = e => { if (isAdmin() && e.target.checked) ref.child('options/mode').set(e.target.value); };
+});
+$('optHurry').onchange = e => { if (isAdmin()) ref.child('options/hurry').set(e.target.checked); };
+$('optRewind').onchange = e => { if (isAdmin()) ref.child('options/rewind').set(e.target.checked); };
+$('optRounds').onchange = e => { if (isAdmin()) ref.child('options/rounds').set(e.target.checked); };
+$('optRotate').onchange = e => { if (isAdmin()) ref.child('options/rotate').set(e.target.checked); };
+
 function nameErr(msg){ $('nameErr').textContent = msg || ''; }
 function addPlayer(){
   const name = $('pname').value.trim(), color = $('pcolor').value.toLowerCase();
   if (!name){ nameErr('Saisis un prénom.'); return; }
+  const mode = modeOf();
   let reason = '';
   // transaction : pas de doublon même si deux téléphones ajoutent en même temps
   ref.child('players').transaction(a => {
     a = a || [];
     reason = '';
+    if (mode === 'solo' && a.length >= 1){ reason = 'Solo : un seul joueur.'; return; }
+    if (mode === 'ia' && a.filter(p => !p.ai).length >= 1){ reason = "Un seul joueur contre l'IA."; return; }
     if (a.some(p => norm(p.name) === norm(name))){ reason = 'Ce prénom est déjà pris.'; return; }
     if (a.some(p => String(p.color).toLowerCase() === color)){ reason = 'Cette couleur est déjà prise.'; return; }
     a.push({name, color});
@@ -580,16 +787,56 @@ $('addP').onclick = addPlayer;
 $('pname').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addPlayer(); } });
 $('pname').addEventListener('input', () => nameErr(''));
 $('pcolor').addEventListener('input', () => nameErr(''));
+
+// lancement (admin) : prépare la partie selon le mode ; sinon « Rejoindre » une partie lancée
+function launch(){
+  proceeded = true;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if (cur.started) return;
+    const mode = modeOf(cur);
+    const pl = (cur.players || []).slice();
+    if (mode === 'solo' && pl.length !== 1) return;
+    if (mode === 'ia'){
+      if (pl.filter(p => !p.ai).length !== 1) return;
+      if (!pl.some(p => p.ai)) pl.push({name: 'IA', color: freeColorFrom(pl), ai: true});
+    }
+    if ((mode === 'seq' || mode === 'sim') && pl.length < 2) return;
+    cur.players = pl;
+    cur.started = true; cur.current = 0; cur.turn = 1; cur.round = 1;
+    cur.log = null; cur.passed = null; cur.done = null; cur.st = null; cur.reorder = null; cur.alarm = null; cur.hurry = null; cur.skipped = null;
+    cur.tm = {acc: {}, run: {}, totAcc: 0};
+    if (mode === 'solo' || mode === 'ia'){
+      cur.claims = {}; pl.forEach((p, i) => { cur.claims[i] = dev; });   // ce téléphone joue tous les joueurs
+      cur.go = true;
+    } else cur.go = false;                                              // le chrono démarre quand tout le monde a choisi son nom
+    applyTiming(cur, nowS());
+    return cur;
+  });
+}
 $('start').onclick = () => {
   if (!g) return;
-  if (!g.started){
-    if (isAdmin() && players().length >= 2){ proceeded = true; ref.update({started: true, current: 0, turn: 1}); }
-  } else { proceeded = true; render(); }
+  if (!g.started){ if (isAdmin()) launch(); }
+  else { proceeded = true; render(); }
 };
 
 /* ---------- Qui es-tu ? ---------- */
 function claim(i){
-  ref.child('claims/' + i).transaction(v => v ? undefined : dev);   // refusé si déjà pris
+  ref.child('claims/' + i).transaction(v => v ? undefined : dev, (err, ok) => { if (ok) checkGo(); });
+}
+// quand tout le monde a choisi son nom, les chronos démarrent
+function checkGo(){
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if (!cur.started || cur.go) return;
+    const n = (cur.players || []).length, c = cur.claims || {};
+    let k = 0;
+    for (let i = 0; i < n; i++) if (c[i] != null) k++;
+    if (k < n) return;
+    cur.go = true;
+    applyTiming(cur, nowS());
+    return cur;
+  });
 }
 function renderWho(){
   show('who');
@@ -609,49 +856,78 @@ function renderWho(){
 }
 
 /* ---------- Jeu ---------- */
+function renderTimers(){
+  if (!g || !g.started || meIdx === null) return;
+  const mode = modeOf(), list = players();
+  if (mode === 'solo'){
+    $('timer').style.display = 'none';
+    if ($('big').className === 'clock') $('big').textContent = fmt(totalMs());
+    return;
+  }
+  const me = list[meIdx];
+  $('timer').style.display = '';
+  $('timer').textContent = (me ? me.name + ' ' + fmt(elapsed(meIdx)) + ' · ' : '') + 'Total ' + fmt(totalMs());
+}
+
 function renderGame(){
   show('game');
-  const list = players(), n = list.length;
-  const cur = g.current % n, me = list[meIdx], act = list[cur];
-  const gs = $('game');
+  const list = players(), n = list.length, mode = modeOf(), o = g.options || {};
+  const isSim = mode === 'sim', isSolo = mode === 'solo', showFirst = mode === 'seq' || mode === 'ia';
+  const hostAll = mode === 'solo' || mode === 'ia';
+  const cur = g.current % n, me = list[meIdx], gs = $('game');
+  const done = g.done || {}, passed = g.passed || {};
+  const reorder = !!g.reorder;
 
   // tant que tout le monde n'a pas choisi son nom : message d'attente et retour possible
-  waiting = claimedCount() < n;
-  const mine = cur === meIdx && !waiting;
+  waiting = !hostAll && claimedCount() < n;
+  const mine = !waiting && !reorder && (isSim ? !done[meIdx] : cur === meIdx);
+  iAmActive = mine && !isSolo;
+  const act = list[cur];
   $('gback').style.display = waiting ? '' : 'none';
+  $('foot').style.display = isSolo ? 'none' : '';
   const wt = $('wait');
   if (waiting){
     const cl = g.claims || {};
-    const names = list.filter((p, i) => !cl[i]).map(p => p.name);
+    const names = list.filter((p, i) => cl[i] == null).map(p => p.name);
     wt.textContent = 'En attente de ' + (names.length > 1
       ? names.slice(0, -1).join(' ; ') + ' et ' + names[names.length - 1]
       : names[0]);
     wt.style.display = '';
   } else wt.style.display = 'none';
 
-  // le stage (carré) prend la couleur du joueur en cours ; toute la carte est cliquable à mon tour
+  // le stage (carré) prend la couleur du joueur ; toute la carte est cliquable à mon tour
+  const sp = (isSim || isSolo) ? me : act;
   const st = $('stage');
-  st.style.background = `linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 62%),${act.color}`;
-  st.style.color = textOn(act.color);
-  st.classList.toggle('tap', mine);
+  st.style.background = `linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 62%),${sp.color}`;
+  st.style.color = textOn(sp.color);
+  st.classList.toggle('tap', iAmActive);
 
-  // pastilles d'ordre
-  $('strip').innerHTML = list.map((p, i) =>
-    `<div class="chip ${i === cur ? 'act' : ''}" style="background:${p.color}"></div>`).join('');
-  // « Tour » = une manche complète : le numéro ne change que lorsque tout le monde a joué
-  $('turnno').textContent = 'Tour ' + (Math.floor(((g.turn || 1) - 1) / n) + 1);
+  // pastilles d'ordre (avec le picto 1er joueur) et numéro de manche
+  $('strip').style.display = isSolo ? 'none' : '';
+  $('turnno').style.display = isSolo ? 'none' : '';
+  $('strip').innerHTML = list.map((p, i) => {
+    let cls = '';
+    if (isSim) cls = done[i] ? 'dim' : '';
+    else cls = (i === cur ? 'act ' : '') + (passed[i] ? 'dim' : '');
+    return `<div class="chip ${cls}" style="background:${p.color};color:${textOn(p.color)}">${i === 0 && showFirst ? FLAG : ''}</div>`;
+  }).join('');
+  $('turnno').textContent = 'Tour ' + (g.round || 1);
 
   // mon nom : pastille à ma couleur, texte adapté
   const mn = $('myname');
   mn.style.setProperty('--pc', me.color);
   mn.style.setProperty('--pt', textOn(me.color));
-  mn.querySelector('.nm').textContent = me.name;
+  mn.querySelector('.nm').textContent = me.name + (passed[meIdx] ? ' · passé' : '');
+  $('pass').style.display = (mine && o.rounds && !isSim && !isSolo) ? '' : 'none';
 
   const al = (g.alarm && g.alarm.turn === g.turn) ? g.alarm : null;
   const rem = al ? Math.max(0, Math.ceil((al.until - nowS()) / 1000)) : 0;
+  const alMine = !!(al && al.player === meIdx);
+  const alName = al && list[al.player] ? list[al.player].name : '';
   // message « Le tour de X est passé » (affiché ~4 s sur tous les écrans après une alarme)
   const sk = (g.skipped && g.skipped.turn === g.turn && nowS() < g.skipped.until) ? g.skipped : null;
-  if (prevCurrent !== cur){ taps.length = 0; $('tapc').textContent = ''; }
+  const key = isSim ? 'r' + (g.round || 1) : cur;
+  if (prevCurrent !== key){ taps.length = 0; $('tapc').textContent = ''; }
 
   // clignotement : 'flash' (début de tour), 'slow' (alarme), 'fast' (5 dernières secondes)
   const setBlink = m => {
@@ -662,12 +938,15 @@ function renderGame(){
     gs.dataset.blink = m;
   };
 
-  if (mine){
+  if (isSolo){
+    setBlink('');
+    gs.style.background = `radial-gradient(70% 42% at 50% 30%,${rgba(me.color, .55)},transparent 72%),${LIGHT}`;
+  } else if (mine){
     // plein écran à ma couleur
     gs.style.background = `radial-gradient(90% 55% at 50% 0%,rgba(255,255,255,.45),transparent 70%),${me.color}`;
-    if (al){
+    if (alMine){
       setBlink(rem <= 5 ? 'fast' : 'slow');
-    } else if (prevCurrent !== cur || lastWaiting){
+    } else if (prevCurrent !== key || lastWaiting){
       myTurnSince = Date.now();
       setBlink('');
       setBlink('flash');
@@ -677,32 +956,43 @@ function renderGame(){
     }
   } else {
     setBlink('');
-    // fond clair avec une lueur de la couleur du joueur actif
-    gs.style.background = `radial-gradient(70% 42% at 50% 30%,${rgba(act.color, .55)},transparent 72%),${LIGHT}`;
+    // fond clair avec une lueur de la couleur du joueur
+    gs.style.background = `radial-gradient(70% 42% at 50% 30%,${rgba(sp.color, .55)},transparent 72%),${LIGHT}`;
   }
 
   // textes du stage
   const big = $('big'), sub = $('sub');
   big.className = '';
-  if (waiting){
-    big.textContent = act.name;
-    sub.textContent = 'commence';
+  if (reorder){
+    big.className = 'msg'; big.textContent = 'Nouvelle manche'; sub.textContent = 'Choix du 1er joueur…';
+  } else if (waiting){
+    if (isSim){ big.className = 'msg'; big.textContent = 'Tout le monde joue en même temps'; sub.textContent = 'dès que tous sont prêts'; }
+    else { big.textContent = act.name; sub.textContent = 'commence'; }
+  } else if (isSolo){
+    big.className = 'clock'; big.textContent = fmt(totalMs()); sub.textContent = 'Partie en cours';
   } else if (al && rem <= 5){
     big.className = 'num';
     big.textContent = rem;
-    sub.textContent = mine ? 'DÉPÊCHE-TOI !' : act.name + ' est trop lent';
+    sub.textContent = alMine ? 'DÉPÊCHE-TOI !' : alName + ' est trop lent';
   } else if (al){
-    if (mine){
+    if (alMine){
       big.textContent = 'DÉPÊCHE-TOI !';
-      sub.textContent = 'Ton tour sera passé dans ' + rem + ' s';
+      sub.textContent = (isSim ? 'Ta partie sera terminée dans ' : 'Ton tour sera passé dans ') + rem + ' s';
     } else {
-      big.textContent = act.name;
-      sub.textContent = 'Trop lent ! Tour passé dans ' + rem + ' s';
+      big.textContent = alName;
+      sub.textContent = 'Trop lent ! ' + (isSim ? 'Fin automatique dans ' : 'Tour passé dans ') + rem + ' s';
     }
   } else if (sk){
     big.className = 'msg';
     big.textContent = sk.player === meIdx ? 'Ton tour est passé' : 'Le tour de ' + (list[sk.player] ? list[sk.player].name : '') + ' est passé';
-    sub.textContent = mine ? 'À toi de jouer !' : act.name + ' joue maintenant';
+    sub.textContent = mine ? 'À toi de jouer !' : (isSim ? '' : act.name + ' joue maintenant');
+  } else if (isSim){
+    if (mine){ big.textContent = 'JOUE !'; sub.textContent = 'Touche ici quand tu as fini'; }
+    else {
+      const names = list.filter((p, i) => !done[i]).map(p => p.name);
+      big.textContent = 'Terminé';
+      sub.textContent = 'En attente de ' + (names.length > 1 ? names.slice(0, -1).join(' ; ') + ' et ' + names[names.length - 1] : names[0]);
+    }
   } else if (mine){
     big.textContent = 'À TOI !';
     sub.textContent = 'Touche ici quand tu as fini';
@@ -710,8 +1000,10 @@ function renderGame(){
     big.textContent = act.name;
     sub.textContent = 'est en train de jouer';
   }
+  renderTimers();
   lastWaiting = waiting;
-  prevCurrent = cur;
+  prevCurrent = key;
+  syncReorder();
 }
 
 // retour au choix du nom (libère mon joueur) tant que tout le monde n'a pas choisi
@@ -723,40 +1015,146 @@ $('gback').onclick = () => {
   ref.child('claims/' + i).remove();
 };
 
+// J'ai fini mon tour (ou, en simultané, ma partie)
 function endTurn(){
-  if (!g || !g.started || meIdx === null) return;
-  const n = players().length, me = meIdx;
+  if (!g || !g.started || meIdx === null || waiting) return;
+  const mode = modeOf(), me = meIdx;
+  if (mode === 'solo') return;
   ref.transaction(cur => {
     if (!cur) return cur;
-    if ((cur.current % n) !== me) return;           // plus mon tour : on annule
-    cur.current = (cur.current + 1) % n;
-    cur.turn = (cur.turn || 1) + 1;
-    cur.alarm = null; cur.hurry = null;
+    if (!cur.go || cur.reorder || cur.ended) return;
+    const n = cur.players.length, now = nowS();
+    if (modeOf(cur) === 'sim'){
+      if (cur.done && cur.done[me]) return;
+      finishSim(cur, me, now);
+    } else {
+      if ((cur.current % n) !== me) return;           // plus mon tour : on annule
+      advance(cur, 'play', now);
+    }
     return cur;
   });
 }
+// « Passer son tour » : fin de la manche pour ce joueur
+function passTurn(){
+  if (!g || !g.started || meIdx === null || waiting) return;
+  const me = meIdx;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if (!cur.go || cur.reorder || cur.ended || !(cur.options && cur.options.rounds)) return;
+    const n = cur.players.length;
+    if ((cur.current % n) !== me) return;
+    advance(cur, 'pass', nowS());
+    return cur;
+  });
+}
+$('pass').onclick = () => { if (iAmActive && Date.now() - myTurnSince > 700) passTurn(); };
 // toute la carte (stage) termine mon tour
 $('stage').onclick = () => {
-  if (!waiting && prevCurrent === meIdx && Date.now() - myTurnSince > 700) endTurn();   // garde anti-clic accidentel
+  if (iAmActive && Date.now() - myTurnSince > 700) endTurn();   // garde anti-clic accidentel
 };
 
-/* ---------- Terminer la partie : base vidée, tout le monde revient à l'accueil ---------- */
+/* ---------- Choix du 1er joueur en fin de manche ---------- */
+function syncReorder(){
+  if (statsOpen) return;
+  if (g.reorder){
+    if (!reorderOpen || reorderRound !== g.reorder.round){
+      reorderOpen = true; reorderRound = g.reorder.round;
+      const n = players().length;
+      draft = Array.from({length: n}, (_, i) => (i + 1) % n);   // proposition : le 2e joueur devient 1er
+      drawReorder();
+    }
+  } else if (reorderOpen){ reorderOpen = false; closeSheet(); }
+}
+function drawReorder(){
+  const list = players();
+  let h = '<div class="sh-title">Nouvelle manche</div>' +
+          '<div class="sh-sub">Choisis le 1er joueur (« 1er ») ou réorganise l\'ordre du tour, puis valide.</div><div>';
+  draft.forEach((oi, pos) => {
+    const p = list[oi];
+    h += `<div class="pl"><div class="dot" style="background:${p.color}"></div>` +
+         `<div class="nm">${pos + 1}. ${esc(p.name)}${pos === 0 ? FLAG : ''}</div>` +
+         (pos > 0 ? `<button data-a="first" data-p="${pos}">1er</button>` : '') +
+         `<button data-a="up" data-p="${pos}" ${pos === 0 ? 'disabled' : ''}>↑</button>` +
+         `<button data-a="dn" data-p="${pos}" ${pos === draft.length - 1 ? 'disabled' : ''}>↓</button></div>`;
+  });
+  h += '</div>';
+  setSheet(h, 'Valider', commitReorder, false);
+  $('sbody').onclick = e => {
+    const b = e.target.closest('button[data-a]');
+    if (!b || b.disabled) return;
+    const pos = +b.dataset.p, a = b.dataset.a;
+    if (a === 'first') draft = draft.slice(pos).concat(draft.slice(0, pos));   // les suivants gardent l'ordre normal
+    else { const j = a === 'up' ? pos - 1 : pos + 1; [draft[pos], draft[j]] = [draft[j], draft[pos]]; }
+    drawReorder();
+  };
+}
+function commitReorder(){
+  const perm = draft.slice(), rd = reorderRound;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if (!cur.reorder || cur.reorder.round !== rd) return;     // déjà validé par un autre téléphone
+    applyReorder(cur, perm, nowS());
+    return cur;
+  });
+}
+
+/* ---------- Chronos de chaque joueur (touche « Tour N ») ---------- */
+$('turnno').onclick = () => {
+  if (!g || !g.started) return;
+  const list = players();
+  const rows = list.map((p, i) => `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td><td>${fmt(elapsed(i))}</td></tr>`).join('');
+  setSheet('<div class="sh-title">Chronos</div>' +
+    '<table class="stt"><thead><tr><th>Joueur</th><th>Temps de jeu</th></tr></thead><tbody>' + rows +
+    `<tr class="tot"><td>Total de la partie</td><td>${fmt(totalMs())}</td></tr></tbody></table>`, 'Fermer', null, true);
+};
+
+/* ---------- Terminer la partie : statistiques pour tous, puis retour à l'accueil ---------- */
 $('end').onclick = async () => {
   if (!ref) return;
   if (!await uiConfirm('Terminer la partie pour tous les joueurs ?', 'Terminer')) return;
   const r = ref;
-  r.set({ended: true}).then(() => setTimeout(() => r.remove(), 3000));
+  r.transaction(cur => {
+    if (!cur) return cur;
+    if (cur.ended) return;
+    cur.ended = true;
+    applyTiming(cur, nowS());          // fige tous les chronos
+    return cur;
+  }, (err, ok) => { if (ok) setTimeout(() => r.remove(), 60000); });   // la base est vidée une minute plus tard
 };
+function showStats(v){
+  if (statsOpen) return;
+  statsOpen = true; reorderOpen = false;
+  const list = v.players || [], mode = modeOf(v), o = v.options || {};
+  const showHurry = mode === 'seq' || mode === 'sim';
+  const showRw = (mode === 'seq' || mode === 'ia') && !!o.rewind;
+  const rows = list.map((p, i) => {
+    const hu = ((v.st && v.st.hurry) || {})[i] || 0;
+    const rw = v.rw && v.rw[i] ? 'Oui' : '—';
+    return `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td><td>${fmt(elapsed(i, v))}</td>` +
+           (showHurry ? `<td>${hu}</td>` : '') + (showRw ? `<td>${rw}</td>` : '') + '</tr>';
+  }).join('');
+  const html = '<div class="sh-title">Fin de la partie</div>' +
+    `<div class="sh-sub">Durée totale ${fmt(totalMs(v))}${mode === 'solo' ? '' : ' · ' + (v.round || 1) + (((v.round || 1) > 1) ? ' tours' : ' tour')}</div>` +
+    '<table class="stt"><thead><tr><th>Joueur</th><th>Temps de jeu</th>' +
+    (showHurry ? '<th>« Plus vite »</th>' : '') + (showRw ? '<th>Rewind</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  setSheet(html, 'Fermer', () => leaveGame(), false);
+}
 
 /* ---------- Rewind : on touche son nom ---------- */
-// Une seule fois par joueur et par partie ; impossible tant qu'on n'a pas joué (Tour 1)
+// Une seule fois par joueur et par partie : retour à son dernier tour dans l'historique de la manche.
+// Impossible si on n'a pas encore joué, ou si on a passé son tour.
+function lastPlayIndex(log, me){
+  for (let q = log.length - 1; q >= 0; q--) if (log[q] && log[q].p === me && log[q].a !== 'pass') return q;
+  return -1;
+}
 function canRewind(){
-  if (!g || !g.started || meIdx === null) return false;
-  if (!(g.options && g.options.rewind)) return false;         // option désactivée par l'admin
-  const n = players().length, me = meIdx;
+  if (!g || !g.started || meIdx === null || g.reorder) return false;
+  const o = g.options || {}, mode = modeOf();
+  if (!o.rewind || !(mode === 'seq' || mode === 'ia')) return false;   // option désactivée / mode sans rewind
+  const me = meIdx;
   if (g.rw && g.rw[me]) return false;                         // déjà utilisé
-  const c = g.current % n, steps = ((c - me + n) % n) || n;
-  return (g.turn || 1) - 1 - steps >= 0;                      // a déjà joué au moins une fois
+  if (g.passed && g.passed[me]) return false;                 // a passé son tour
+  return lastPlayIndex(g.log || [], me) >= 0;                 // a déjà joué au moins une fois
 }
 function disarm(){
   armed = false; rwBusy = false;
@@ -768,19 +1166,29 @@ function shake(){
   el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
 }
 function doRewind(){
-  const n = players().length, me = meIdx;
+  const me = meIdx;
   ref.transaction(cur => {
     if (!cur) return cur;
-    if (!(cur.options && cur.options.rewind)) return;
+    const o = cur.options || {};
+    if (!o.rewind || cur.reorder || cur.ended) return;
     if (cur.rw && cur.rw[me]) return;                          // déjà utilisé
-    const c = cur.current % n;
-    const steps = ((c - me + n) % n) || n;                    // nb de passages à reculer jusqu'à mon dernier tour
-    if ((cur.turn || 1) - 1 - steps < 0) return;              // je n'ai pas encore joué
+    if (cur.passed && cur.passed[me]) return;
+    const log = (cur.log || []).slice();
+    const k = lastPlayIndex(log, me);
+    if (k < 0) return;                                         // je n'ai pas encore joué
+    const removed = log.length - k, rest = log.slice(0, k), n = cur.players.length;
+    cur.log = rest.length ? rest : null;
+    cur.turn = Math.max(1, (cur.turn || 1) - removed);
     cur.current = me;
-    cur.turn = (cur.turn || 1) - steps;
-    cur.alarm = null; cur.hurry = null;
+    if (o.rounds){
+      const ps = {}; let any = false;
+      rest.forEach(e => { if (e.a === 'pass'){ ps[e.p] = true; any = true; } });
+      cur.passed = any ? ps : null;
+    } else if (!o.rotate) cur.round = Math.floor((cur.turn - 1) / n) + 1;
+    cur.alarm = null; cur.hurry = null; cur.skipped = null;
     cur.rw = cur.rw || {}; cur.rw[me] = true;
     cur.rwFx = {id: Date.now() + '-' + me, by: me};            // déclenche l'animation sur tous les écrans
+    applyTiming(cur, nowS());
     return cur;
   });
 }
@@ -802,17 +1210,14 @@ $('myname').onclick = e => {
   setTimeout(() => { doRewind(); disarm(); }, 650);
 };
 
-/* ---------- Option « Plus vite ! » ---------- */
-$('optHurry').onchange = e => { if (isAdmin()) ref.child('options/hurry').set(e.target.checked); };
-$('optRewind').onchange = e => { if (isAdmin()) ref.child('options/rewind').set(e.target.checked); };
-
+/* ---------- Option « Plus vite ! » (tour par tour) ---------- */
 // Chaque joueur (qui n'est pas actif) compte ses tapotements : 10 en 10 s => il envoie son « vote »
 $('game').addEventListener('pointerdown', e => {
-  if (!g || !g.started || waiting || meIdx === null || !(g.options && g.options.hurry)) return;
+  if (!g || !g.started || waiting || meIdx === null || g.reorder || modeOf() !== 'seq' || !(g.options && g.options.hurry)) return;
   const n = players().length;
   if (g.current % n === meIdx) return;                       // c'est mon tour : pas de vote
   if (g.alarm && g.alarm.turn === g.turn) return;            // alarme déjà en cours
-  if (e.target.closest('#myname,#end,#gback')) return;
+  if (e.target.closest('#myname,#end,#gback,#pass,#turnno')) return;
   const t = Date.now();
   taps.push(t);
   while (taps.length && t - taps[0] > 10000) taps.shift();
@@ -822,10 +1227,11 @@ $('game').addEventListener('pointerdown', e => {
 });
 
 function sendHurry(){
-  const n = players().length, me = meIdx;
+  const me = meIdx;
   ref.transaction(cur => {
     if (!cur) return cur;
-    if (!cur.started) return;
+    if (!cur.started || cur.reorder || modeOf(cur) !== 'seq') return;
+    const n = cur.players.length;
     const c = cur.current % n;
     if (c === me) return;
     if (cur.alarm && cur.alarm.turn === cur.turn) return;
@@ -838,7 +1244,11 @@ function sendHurry(){
       const h = cur.hurry[i];
       if (!h || h.turn !== cur.turn || now - h.t > 10000){ all = false; break; }
     }
-    if (all){ cur.alarm = {player: c, turn: cur.turn, until: now + 30000}; cur.hurry = null; }
+    if (all){
+      cur.alarm = {player: c, turn: cur.turn, until: now + 30000}; cur.hurry = null;
+      cur.st = cur.st || {}; cur.st.hurry = cur.st.hurry || {};
+      cur.st.hurry[c] = (cur.st.hurry[c] || 0) + 1;              // compté pour les statistiques de fin
+    }
     return cur;
   });
 }
@@ -848,25 +1258,24 @@ function expireAlarm(){
   const al = g && g.alarm;
   if (!al || expiringFor === al.until) return;
   expiringFor = al.until;
-  const n = players().length;
   ref.transaction(cur => {
     if (!cur || !cur.alarm) return cur;
     if (cur.alarm.turn !== cur.turn || nowS() < cur.alarm.until - 1000) return;
-    const pen = cur.current % n;                        // joueur pénalisé
-    cur.current = (cur.current + 1) % n;
-    cur.turn = (cur.turn || 1) + 1;
-    cur.alarm = null; cur.hurry = null;
-    cur.skipped = {player: pen, turn: cur.turn, until: nowS() + 4000};
+    const now = nowS(), pen = cur.alarm.player;                // joueur pénalisé
+    if (modeOf(cur) === 'sim') finishSim(cur, pen, now);       // simultané : sa partie est terminée d'office
+    else advance(cur, 'skip', now);
+    cur.skipped = {player: pen, turn: cur.turn, until: now + 4000};
     return cur;
   });
 }
 setInterval(() => {
-  if (!g || !g.started || meIdx === null) return;
+  if (!g || !g.started || meIdx === null || g.ended) return;
   const sk = g.skipped;
   const skActive = sk && sk.turn === g.turn && nowS() < sk.until + 600;
-  if (!g.alarm && !skActive) return;
   if (g.alarm && nowS() >= g.alarm.until) expireAlarm();
-  renderGame();   // met à jour le compte à rebours et le message « tour passé »
+  if (!$('game').classList.contains('on')) return;
+  if (g.alarm || skActive) renderGame();   // compte à rebours et message « tour passé »
+  else renderTimers();                     // chronos en direct
 }, 500);
 
 /* ---------- Écran toujours allumé ---------- */
