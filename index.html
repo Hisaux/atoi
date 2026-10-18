@@ -212,14 +212,6 @@
     <div class="codeval" id="lobbyCode"></div>
 
     <div class="glass card">
-      <h2>Mode de jeu</h2>
-      <label class="opt"><input type="radio" name="mode" value="seq"><span>Tour par tour<br><small>Chaque joueur sur son téléphone, à tour de rôle.</small></span></label>
-      <label class="opt"><input type="radio" name="mode" value="sim"><span>Simultané<br><small>Tout le monde joue en même temps et appuie sur « fini ».</small></span></label>
-      <label class="opt"><input type="radio" name="mode" value="ia"><span>Solo avec IA<br><small>Un seul téléphone : tours comptés, chrono par joueur et pour l'IA.</small></span></label>
-      <label class="opt"><input type="radio" name="mode" value="solo"><span>Solo sans IA<br><small>Juste l'interface de jeu avec un chrono.</small></span></label>
-    </div>
-
-    <div class="glass card">
       <h2>Ajouter un joueur</h2>
       <div class="row">
         <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
@@ -232,17 +224,26 @@
     <div class="glass card">
       <div class="h2row">
         <h2>Ordre de passage</h2>
-        <button id="rand" class="pri sm" disabled>1er joueur au hasard</button>
+        <button id="rand" class="pri sm" disabled>1<sup>er</sup> joueur au hasard</button>
       </div>
       <div id="plist"></div>
     </div>
 
+    <div class="glass card">
+      <h2>Mode de jeu</h2>
+      <label class="opt"><input type="radio" name="mode" value="seq"><span>Tour par tour<br><small>On joue à tour de rôle.</small></span></label>
+      <label class="opt"><input type="radio" name="mode" value="sim"><span>Simultané<br><small>Tout le monde joue en même temps.</small></span></label>
+      <label class="opt"><input type="radio" name="mode" value="ia"><span>Solo avec IA<br><small>Un seul téléphone : tours comptés, chrono par joueur et pour l'IA.</small></span></label>
+      <label class="opt"><input type="radio" name="mode" value="solo"><span>Solo sans IA<br><small>Juste l'interface de jeu avec un chrono.</small></span></label>
+    </div>
+    
     <div class="glass card" id="optCard">
-      <h2>Option</h2>
+      <h2>Options</h2>
+      <label class="opt" id="lblRounds"><input type="checkbox" id="optRounds"><span>Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu'à ce que tout le monde ait passé.</small></span></label>
+      <label class="opt" id="lblRotate"><input type="checkbox" id="optRotate"><span>Changement de 1<sup>er</sup> joueur à chaque manche<br><small>En fin de manche, on choisit le nouveau 1<sup>er</sup>joueur.</small></span></label>
+
       <label class="opt" id="lblRewind"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
       <label class="opt" id="lblHurry"><input type="checkbox" id="optHurry"><span id="hurryTxt"></span></label>
-      <label class="opt" id="lblRounds"><input type="checkbox" id="optRounds"><span>Jeu par manche<br><small>Bouton « Passer son tour » : la manche se termine pour ce joueur, les autres continuent jusqu'à ce que tout le monde ait passé.</small></span></label>
-      <label class="opt" id="lblRotate"><input type="checkbox" id="optRotate"><span>Changement de 1er joueur à chaque manche<br><small>En fin de manche, on choisit le nouveau 1er joueur et on peut réorganiser l'ordre.</small></span></label>
     </div>
 
     <div class="row" style="margin-top:16px"><button id="start" class="pri" disabled>Rejoindre</button></div>
@@ -492,7 +493,7 @@ function applyTiming(cur, now){
 // passage au joueur suivant. kind : 'play' (j'ai fini), 'pass' (je passe la manche), 'skip' (tour passé par « Plus vite »)
 function advance(cur, kind, now){
   const n = cur.players.length, c = cur.current % n, o = cur.options || {};
-  const log = cur.log || []; log.push({p: c, a: kind}); cur.log = log;
+  const log = cur.log || []; log.push({p: c, a: kind, cy: cur.cycle || 1}); cur.log = log;
   cur.turn = (cur.turn || 1) + 1;
   cur.alarm = null; cur.hurry = null;
   if (kind === 'pass'){ cur.passed = cur.passed || {}; cur.passed[c] = true; }
@@ -506,11 +507,16 @@ function advance(cur, kind, now){
   }
   if (end){
     cur.round = (cur.round || 1) + 1;
+    cur.cycle = 1;                                           // nouvelle manche : le compteur de tours repart de 1
     if (o.rounds || o.rotate) cur.log = null;
     cur.passed = null;
     cur.current = 0;
     if (o.rotate) cur.reorder = {round: cur.round};          // choix du 1er joueur, chronos en pause
-  } else cur.current = next;
+  } else {
+    // par manche : « Tour » + 1 quand on revient au premier joueur encore en jeu (même s'il n'est pas le joueur n°1)
+    if (o.rounds && next <= c) cur.cycle = (cur.cycle || 1) + 1;
+    cur.current = next;
+  }
   applyTiming(cur, now);
 }
 
@@ -803,7 +809,7 @@ function launch(){
     }
     if ((mode === 'seq' || mode === 'sim') && pl.length < 2) return;
     cur.players = pl;
-    cur.started = true; cur.current = 0; cur.turn = 1; cur.round = 1;
+    cur.started = true; cur.current = 0; cur.turn = 1; cur.round = 1; cur.cycle = 1;
     cur.log = null; cur.passed = null; cur.done = null; cur.st = null; cur.reorder = null; cur.alarm = null; cur.hurry = null; cur.skipped = null;
     cur.tm = {acc: {}, run: {}, totAcc: 0};
     if (mode === 'solo' || mode === 'ia'){
@@ -911,13 +917,16 @@ function renderGame(){
     else cls = (i === cur ? 'act ' : '') + (passed[i] ? 'dim' : '');
     return `<div class="chip ${cls}" style="background:${p.color};color:${textOn(p.color)}">${i === 0 && showFirst ? FLAG : ''}</div>`;
   }).join('');
-  $('turnno').textContent = 'Tour ' + (g.round || 1);
+  // par manche : « Manche M · Tour N » (la manche ne change que quand tout le monde a passé) ; sinon « Tour N »
+  $('turnno').textContent = (o.rounds && !isSim)
+    ? 'Manche ' + (g.round || 1) + ' · Tour ' + (g.cycle || 1)
+    : 'Tour ' + (g.round || 1);
 
   // mon nom : pastille à ma couleur, texte adapté
   const mn = $('myname');
   mn.style.setProperty('--pc', me.color);
   mn.style.setProperty('--pt', textOn(me.color));
-  mn.querySelector('.nm').textContent = me.name + (passed[meIdx] ? ' · passé' : '');
+  mn.querySelector('.nm').textContent = me.name + (passed[meIdx] ? ' a passé' : '');
   $('pass').style.display = (mine && o.rounds && !isSim && !isSolo) ? '' : 'none';
 
   const al = (g.alarm && g.alarm.turn === g.turn) ? g.alarm : null;
@@ -1134,7 +1143,7 @@ function showStats(v){
            (showHurry ? `<td>${hu}</td>` : '') + (showRw ? `<td>${rw}</td>` : '') + '</tr>';
   }).join('');
   const html = '<div class="sh-title">Fin de la partie</div>' +
-    `<div class="sh-sub">Durée totale ${fmt(totalMs(v))}${mode === 'solo' ? '' : ' · ' + (v.round || 1) + (((v.round || 1) > 1) ? ' tours' : ' tour')}</div>` +
+    `<div class="sh-sub">Durée totale ${fmt(totalMs(v))}${mode === 'solo' ? '' : ' · ' + (v.round || 1) + (v.options && v.options.rounds && mode !== 'sim' ? (((v.round || 1) > 1) ? ' manches' : ' manche') : (((v.round || 1) > 1) ? ' tours' : ' tour'))}</div>` +
     '<table class="stt"><thead><tr><th>Joueur</th><th>Temps de jeu</th>' +
     (showHurry ? '<th>« Plus vite »</th>' : '') + (showRw ? '<th>Rewind</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
   setSheet(html, 'Fermer', () => leaveGame(), false);
@@ -1181,6 +1190,7 @@ function doRewind(){
     cur.turn = Math.max(1, (cur.turn || 1) - removed);
     cur.current = me;
     if (o.rounds){
+      cur.cycle = (log[k] && log[k].cy) || 1;                    // retour au numéro de tour de ce moment
       const ps = {}; let any = false;
       rest.forEach(e => { if (e.a === 'pass'){ ps[e.p] = true; any = true; } });
       cur.passed = any ? ps : null;
