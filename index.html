@@ -101,13 +101,22 @@
     -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
     box-shadow:0 6px 20px rgba(40,60,110,.12),inset 0 1px 0 rgba(255,255,255,.95)}
   .pl .dot{width:30px;height:30px;border-radius:50%;flex:0 0 30px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
-  .pl .nm{flex:1;font-size:18px;font-weight:600}
-  .pl button{padding:8px 13px;font-size:16px;border-radius:14px}
+  .pl .nm{flex:1;min-width:0;font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl button{padding:8px 11px;font-size:16px;border-radius:14px}
   label.opt{display:flex;align-items:flex-start;gap:14px;padding:12px 4px;font-size:17px;font-weight:600;line-height:1.3;cursor:pointer}
   label.opt input{flex:0 0 26px;width:26px;height:26px;margin:-2px 0 0;accent-color:#2d69eb}
   label.opt small{font-weight:400;color:var(--ink2);font-size:14px}
-  /* picto « 1er joueur » (drapeau) */
-  .fl{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-left:6px}
+  /* picto « 1er joueur » (emoji 1️⃣) */
+  .fl{font-size:16px;line-height:1;vertical-align:-1px;margin-left:6px}
+  /* favoris : étoile à côté du prénom, autocomplétion du prénom */
+  .pl button.star{background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0 6px;font-size:22px;line-height:1;color:#e0a800;vertical-align:-2px}
+  .acwrap{position:relative;flex:1}
+  .sugg{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;display:none;background:rgba(255,255,255,.97);border:1px solid var(--edge);border-radius:12px;box-shadow:0 10px 30px rgba(40,60,110,.2);overflow:hidden}
+  .sugg.on{display:block}
+  .sugg button{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:0;background:none;padding:12px 14px;font-size:17px;text-align:left;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .sugg button+button{border-top:1px solid rgba(27,34,51,.08)}
+  .stt input.num{width:68px;padding:8px 6px;font:inherit;font-size:16px;text-align:center;border-radius:8px;border:1px solid lightgray;background:rgba(255,255,255,.7);color:var(--ink)}
+  .stt input.num:focus{outline:none}
 
   /* écran de jeu */
   #game{padding:0}
@@ -115,7 +124,7 @@
   #top{display:flex;flex-direction:column;align-items:center;gap:10px;padding:max(16px,env(safe-area-inset-top)) 14px 0;position:relative;z-index:4}
   #strip{padding:9px 14px;gap:9px;flex-wrap:wrap;justify-content:center}
   #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;transition:transform .2s,opacity .2s}
-  #strip .chip .fl{width:12px;height:12px;margin:0;stroke-width:2.6}
+  #strip .chip .fl{font-size:11px;margin:0;vertical-align:0}
   #strip .chip.dim{opacity:.3}
   #strip .chip.act{transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
   #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px;cursor:pointer}
@@ -198,8 +207,10 @@
   <div class="wrap">
     <h1>C'est à qui de jouer ?</h1>
     <div class="glass card">
-      <label class="lab" for="code">Nom de la table</label>
-      <input id="code" type="text" placeholder="ex. TABLE7" autocapitalize="characters" autocomplete="off">
+      <label class="lab" for="code">Nom du jeu</label>
+      <input id="code" type="text" placeholder="ex. Catan" autocomplete="off" list="gamelist">
+      <datalist id="gamelist"></datalist>
+      <label class="opt" style="padding:12px 0 0;font-weight:500"><input type="checkbox" id="gext"><span>avec extension</span></label>
       <div class="row" style="margin-top:16px"><button id="go" class="pri" disabled>En attente</button></div>
       <div class="err" id="homeErr"></div>
     </div>
@@ -210,11 +221,15 @@
 <div id="lobby" class="screen">
   <div class="wrap">
     <div class="codeval" id="lobbyCode"></div>
+    <div class="hint ctr" id="lobbyExt" style="margin:0 0 6px"></div>
 
     <div class="glass card">
       <h2>Ajouter un joueur</h2>
       <div class="row">
-        <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
+        <div class="acwrap">
+          <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
+          <div id="sugg" class="sugg"></div>
+        </div>
         <input id="pcolor" type="color" value="#e53935">
       </div>
       <div class="err" id="nameErr"></div>
@@ -290,7 +305,7 @@
 </div>
 
 <!-- Déconnexion : oublie la session sur cet appareil (hors page de garde) -->
-<button id="logout" class="link" style="display:none;position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:60">Déconnexion</button>
+<button id="logout" style="display:none;position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:60;font-size:14px;padding:6px 14px">Déconnexion</button>
 
 <!-- Fiches : chronos, choix du 1er joueur, statistiques de fin -->
 <div id="sheet">
@@ -349,7 +364,7 @@ const nowS = () => Date.now() + srvOff;
 
 const LIGHT = 'radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),#eef2fa';
 const PALETTE = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
-const FLAG = '<svg class="fl" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4L17 12H6"/></svg>';
+const FLAG = '<span class="fl" title="1er joueur">1️⃣</span>';
 
 /* ---------- Messages en modale (remplacent alert / confirm) ---------- */
 function uiModal(msg, confirmMode, okLabel){
@@ -556,8 +571,12 @@ function applyReorder(cur, perm, now){
 }
 
 /* ---------- Accueil ---------- */
+// clé en base à partir du nom du jeu (sans accents, majuscules, lettres/chiffres)
+const keyOf = s => String(s).trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+const slug = s => norm(s).replace(/[^a-z0-9]/g, '') || 'x';
 function join(c){
-  code = c.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+  const gameName = c.trim();
+  code = keyOf(gameName);
   if (!code){ $('code').classList.add('bad'); return; }      // champ vide : bordure rouge, sans texte
   localStorage.setItem('tour_code', code);
   $('homeErr').textContent = '';
@@ -581,8 +600,13 @@ function join(c){
         // l'administrateur crée la table, puis la signale aux autres téléphones
         if (!creating){
           creating = true;
-          ref.update({current: 0, turn: 1, round: 1, started: false, options: {rewind: true, mode: 'seq'}})
-            .then(() => db.ref('lobby').set({code: code, t: firebase.database.ServerValue.TIMESTAMP}).catch(() => {}))
+          const ext = !!$('gext').checked, key = code;
+          ref.update({name: gameName, ext: ext, current: 0, turn: 1, round: 1, started: false, options: {rewind: true, mode: 'seq'}})
+            .then(() => {
+              db.ref('lobby').set({code: key, name: gameName, ext: ext, t: firebase.database.ServerValue.TIMESTAMP}).catch(() => {});
+              // le nom du jeu est mémorisé (autocomplétion quand on rejoue)
+              db.ref('catalog/' + key).transaction(x => { x = x || {plays: 0}; x.name = gameName; x.ext = ext; x.plays = (x.plays || 0) + 1; return x; }).catch(() => {});
+            })
             .catch(e => { const m = e.message; leaveGame(); $('homeErr').textContent = 'Erreur : ' + m; });
         }
         return;
@@ -614,6 +638,7 @@ let statsOpen = false, reorderOpen = false, reorderRound = null, draft = null;
 // bouton de la page de garde : admin = « Créer la table », joueur = « En attente » puis « Rejoindre »
 function updateHome(){
   const b = $('go');
+  $('gext').disabled = !isAdmin();                 // seul l'admin choisit « avec extension »
   if (isAdmin()){ b.textContent = 'Créer la table'; b.disabled = false; }
   else if (tableExists){ b.textContent = 'Rejoindre'; b.disabled = false; }
   else { b.textContent = 'En attente'; b.disabled = true; }
@@ -650,7 +675,7 @@ db.ref('lobby').on('value', s => {
   lobbyCb = gs => {
     const x = gs.val();
     tableExists = !!(x && !x.ended);
-    if (tableExists && !isAdmin() && $('home').classList.contains('on')) $('code').value = v.code;
+    if (tableExists && !isAdmin() && $('home').classList.contains('on')){ $('code').value = v.name || v.code; $('gext').checked = !!v.ext; }
     updateHome();
   };
   lobbyWatch.on('value', lobbyCb, () => {});
@@ -662,9 +687,36 @@ function leaveGame(){
   closeSheet();
   disarm();
   localStorage.removeItem('tour_code');
-  $('code').value = '';
+  $('code').value = ''; $('gext').checked = false;
   show('home');
   updateHome();
+}
+
+// catalogue des jeux déjà joués : autocomplétion du nom du jeu (admin)
+let catalog = {};
+db.ref('catalog').on('value', s => {
+  catalog = s.val() || {};
+  $('gamelist').innerHTML = Object.keys(catalog).map(k => `<option value="${esc(catalog[k].name || k)}">`).join('');
+}, () => {});
+$('code').addEventListener('input', () => {
+  if (!isAdmin()) return;
+  const m = Object.keys(catalog).map(k => catalog[k]).find(x => x && norm(x.name || '') === norm($('code').value));
+  if (m) $('gext').checked = !!m.ext;      // le jeu est connu : on reprend l'option « extension » de la dernière partie
+});
+
+// favoris : prénom + couleur enregistrés en base (étoile à côté du prénom)
+let favs = {};
+db.ref('favorites').on('value', s => {
+  favs = s.val() || {};
+  if (g && ref && $('lobby').classList.contains('on')) renderLobby();
+}, () => {});
+function toggleFav(p){
+  const k = slug(p.name);
+  if (favs[k]){
+    uiConfirm('Retirer ' + p.name + ' des favoris ?', 'Retirer').then(ok => { if (ok) db.ref('favorites/' + k).remove().catch(e => uiAlert('Erreur : ' + e.message)); });
+  } else {
+    db.ref('favorites/' + k).set({name: p.name, color: p.color}).catch(e => uiAlert('Erreur : ' + e.message));
+  }
 }
 $('go').onclick = () => join($('code').value);
 $('code').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('go').disabled) join($('code').value); });
@@ -692,7 +744,8 @@ const HURRY_SEQ = 'Mode « Plus vite ! »<br><small>Si tous les autres tapotent 
 const HURRY_SIM = 'Mode « Plus vite ! » au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
 function renderLobby(){
   show('lobby');
-  $('lobbyCode').textContent = code;
+  $('lobbyCode').textContent = g.name || code;
+  $('lobbyExt').textContent = g.ext ? 'avec extension' : '';
   const adm = isAdmin(), mode = modeOf();
   const showFirst = mode === 'seq' || mode === 'ia';
   const list = players(), box = $('plist');
@@ -709,6 +762,13 @@ function renderLobby(){
     dn.onclick = () => move(i, 1);
     const rm = document.createElement('button'); rm.textContent = '✕';
     rm.onclick = () => { const a = list.slice(); a.splice(i, 1); ref.child('players').set(a); };
+    // étoile vide / pleine : enregistre le prénom et la couleur en favoris
+    const star = document.createElement('button'); star.className = 'star';
+    const isFav = !!favs[slug(p.name)];
+    star.textContent = isFav ? '★' : '☆';
+    star.title = isFav ? 'Favori' : 'Ajouter aux favoris';
+    star.onclick = () => toggleFav(p);
+    d.querySelector('.nm').appendChild(star);
     if (adm) d.append(up, dn);          // seul l'admin change l'ordre
     d.append(rm); box.append(d);
   });
@@ -767,7 +827,8 @@ $('optRotate').onchange = e => { if (isAdmin()) ref.child('options/rotate').set(
 function nameErr(msg){ $('nameErr').textContent = msg || ''; }
 function addPlayer(){
   const name = $('pname').value.trim(), color = $('pcolor').value.toLowerCase();
-  if (!name){ nameErr('Saisis un prénom.'); return; }
+  if (!name){ $('pname').classList.add('bad'); return; }     // prénom vide : bordure rouge, sans texte
+  hideSugg();
   const mode = modeOf();
   let reason = '';
   // transaction : pas de doublon même si deux téléphones ajoutent en même temps
@@ -791,8 +852,33 @@ function addPlayer(){
 }
 $('addP').onclick = addPlayer;
 $('pname').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addPlayer(); } });
-$('pname').addEventListener('input', () => nameErr(''));
+$('pname').addEventListener('input', () => { nameErr(''); $('pname').classList.remove('bad'); showSugg(); });
 $('pcolor').addEventListener('input', () => nameErr(''));
+
+/* ---------- Autocomplétion du prénom (favoris), à partir de 2 lettres ---------- */
+function hideSugg(){ $('sugg').classList.remove('on'); $('sugg').innerHTML = ''; }
+function showSugg(){
+  const v = norm($('pname').value);
+  if (v.length < 2){ hideSugg(); return; }
+  const taken = players().map(p => norm(p.name));
+  const m = Object.keys(favs).map(k => favs[k]).filter(f => f && f.name && norm(f.name).startsWith(v) && !taken.includes(norm(f.name))).slice(0, 5);
+  if (!m.length){ hideSugg(); return; }
+  const box = $('sugg'); box.innerHTML = '';
+  m.forEach(f => {
+    const b = document.createElement('button');
+    b.innerHTML = `<span class="dot2" style="background:${esc(f.color)};margin:0"></span>${esc(f.name)}`;
+    b.onpointerdown = e => {
+      e.preventDefault();
+      $('pname').value = f.name;
+      const used = players().some(p => String(p.color).toLowerCase() === String(f.color).toLowerCase());
+      $('pcolor').value = used ? freeColor() : f.color;      // sa couleur favorite, sauf si elle est déjà prise
+      hideSugg(); nameErr('');
+    };
+    box.append(b);
+  });
+  box.classList.add('on');
+}
+$('pname').addEventListener('blur', () => setTimeout(hideSugg, 150));
 
 // lancement (admin) : prépare la partie selon le mode ; sinon « Rejoindre » une partie lancée
 function launch(){
@@ -1121,30 +1207,89 @@ $('turnno').onclick = () => {
 $('end').onclick = async () => {
   if (!ref) return;
   if (!await uiConfirm('Terminer la partie pour tous les joueurs ?', 'Terminer')) return;
+  // classement et points (facultatifs)
+  const list = players(), two = list.length > 1;
+  let h = '<div class="sh-title">Résultat</div><div class="sh-sub">Indique le classement et les points (facultatif).<br>Touche en dehors pour annuler.</div>' +
+    '<table class="stt"><thead><tr><th>Joueur</th>' + (two ? '<th>Rang</th>' : '') + '<th>Points</th></tr></thead><tbody>';
+  list.forEach((p, i) => {
+    h += `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td>` +
+         (two ? `<td><input class="num" id="rk${i}" type="number" inputmode="numeric" min="1" step="1"></td>` : '') +
+         `<td><input class="num" id="pt${i}" type="number" inputmode="decimal" step="any"></td></tr>`;
+  });
+  setSheet(h + '</tbody></table>', 'Terminer la partie', finishGame, true);
+};
+function finishGame(){
+  const list = players(), rank = {}, pts = {};
+  list.forEach((p, i) => {
+    const rk = $('rk' + i), pt = $('pt' + i);
+    if (rk && rk.value !== '' && !isNaN(+rk.value)) rank[i] = +rk.value;
+    if (pt && pt.value !== '' && !isNaN(+pt.value)) pts[i] = +pt.value;
+  });
+  // pas de rang saisi mais des points : classement automatique (ex æquo = même rang)
+  if (!Object.keys(rank).length && Object.keys(pts).length > 1){
+    const ids = Object.keys(pts).sort((a, b) => pts[b] - pts[a]);
+    ids.forEach((id, q) => { rank[id] = (q > 0 && pts[ids[q - 1]] === pts[id]) ? rank[ids[q - 1]] : q + 1; });
+  }
+  closeSheet();
   const r = ref;
   r.transaction(cur => {
     if (!cur) return cur;
     if (cur.ended) return;
     cur.ended = true;
+    if (Object.keys(rank).length || Object.keys(pts).length){
+      cur.result = {rank: Object.keys(rank).length ? rank : null, pts: Object.keys(pts).length ? pts : null};
+    }
     applyTiming(cur, nowS());          // fige tous les chronos
     return cur;
-  }, (err, ok) => { if (ok) setTimeout(() => r.remove(), 60000); });   // la base est vidée une minute plus tard
-};
+  }, (err, ok, snap) => {
+    if (!ok) return;
+    try { saveStats(snap.val()); } catch (e) {}
+    setTimeout(() => r.remove(), 60000);      // la base est vidée une minute plus tard
+  });
+}
+
+// statistiques des joueurs favoris : une ligne par partie (avec le nom du jeu) et un cumul par jour
+function saveStats(v){
+  if (!v) return;
+  const list = v.players || [], p2 = x => String(x).padStart(2, '0'), d = new Date();
+  const today = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  const rk = (v.result && v.result.rank) || {}, pt = (v.result && v.result.pts) || {};
+  list.forEach((p, i) => {
+    const k = slug(p.name);
+    if (p.ai || !favs[k]) return;
+    const ms = elapsed(i, v), hu = ((v.st && v.st.hurry) || {})[i] || 0;
+    const e = {date: today, ts: firebase.database.ServerValue.TIMESTAMP, game: v.name || '', ext: !!v.ext, mode: modeOf(v),
+               ms: ms, totalMs: totalMs(v), hurry: hu, rewind: !!(v.rw && v.rw[i]), players: list.length, rounds: v.round || 1};
+    if (rk[i] != null) e.rank = rk[i];
+    if (pt[i] != null) e.points = pt[i];
+    db.ref('favStats/' + k + '/games').push(e).catch(() => {});
+    db.ref('favStats/' + k + '/days/' + today).transaction(x => {
+      x = x || {games: 0, ms: 0, points: 0, wins: 0};
+      x.games += 1; x.ms += ms; x.points += (pt[i] != null ? pt[i] : 0);
+      if (rk[i] === 1) x.wins += 1;
+      return x;
+    }).catch(() => {});
+  });
+}
 function showStats(v){
   if (statsOpen) return;
   statsOpen = true; reorderOpen = false;
   const list = v.players || [], mode = modeOf(v), o = v.options || {};
   const showHurry = mode === 'seq' || mode === 'sim';
   const showRw = (mode === 'seq' || mode === 'ia') && !!o.rewind;
+  const rkm = (v.result && v.result.rank) || null, ptm = (v.result && v.result.pts) || null;
   const rows = list.map((p, i) => {
     const hu = ((v.st && v.st.hurry) || {})[i] || 0;
     const rw = v.rw && v.rw[i] ? 'Oui' : '—';
-    return `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td><td>${fmt(elapsed(i, v))}</td>` +
+    return `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td>` +
+           (rkm ? `<td>${rkm[i] != null ? rkm[i] : '—'}</td>` : '') + (ptm ? `<td>${ptm[i] != null ? ptm[i] : '—'}</td>` : '') +
+           `<td>${fmt(elapsed(i, v))}</td>` +
            (showHurry ? `<td>${hu}</td>` : '') + (showRw ? `<td>${rw}</td>` : '') + '</tr>';
   }).join('');
   const html = '<div class="sh-title">Fin de la partie</div>' +
+    (v.name ? `<div class="sh-sub"><b>${esc(v.name)}</b>${v.ext ? ' (avec extension)' : ''}</div>` : '') +
     `<div class="sh-sub">Durée totale ${fmt(totalMs(v))}${mode === 'solo' ? '' : ' · ' + (v.round || 1) + (v.options && v.options.rounds && mode !== 'sim' ? (((v.round || 1) > 1) ? ' manches' : ' manche') : (((v.round || 1) > 1) ? ' tours' : ' tour'))}</div>` +
-    '<table class="stt"><thead><tr><th>Joueur</th><th>Temps de jeu</th>' +
+    '<table class="stt"><thead><tr><th>Joueur</th>' + (rkm ? '<th>Rang</th>' : '') + (ptm ? '<th>Points</th>' : '') + '<th>Temps de jeu</th>' +
     (showHurry ? '<th>« Plus vite »</th>' : '') + (showRw ? '<th>Rewind</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
   setSheet(html, 'Fermer', () => leaveGame(), false);
 }
@@ -1325,9 +1470,8 @@ if (last){ $('code').value = last; join(last); }
     if (!out) {
       out = document.createElement('button');
       out.id = 'adminOut';
-      out.className = 'link';
       out.textContent = 'Déconnexion';
-      out.style.cssText = 'position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;z-index:5';
+      out.style.cssText = 'position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;z-index:5;font-size:14px;padding:6px 14px';
       out.onclick = () => firebase.auth().signOut().catch(e => uiAlert('Erreur : ' + e.message));
       document.getElementById('home').appendChild(out);
     }
