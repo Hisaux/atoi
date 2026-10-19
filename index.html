@@ -100,14 +100,20 @@
     background:rgba(255,255,255,.55);border:1px solid var(--edge);
     -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
     box-shadow:0 6px 20px rgba(40,60,110,.12),inset 0 1px 0 rgba(255,255,255,.95)}
-  .pl .dot{width:30px;height:30px;border-radius:50%;flex:0 0 30px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+  .pl .dot{width:30px;height:30px;border-radius:50%;flex:0 0 30px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22);
+    display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;line-height:1}
   .pl .nm{flex:1;min-width:0;font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl button{padding:8px 11px;font-size:16px;border-radius:14px}
   label.opt{display:flex;align-items:flex-start;gap:14px;padding:12px 4px;font-size:17px;font-weight:600;line-height:1.3;cursor:pointer}
   label.opt input{flex:0 0 26px;width:26px;height:26px;margin:-2px 0 0;accent-color:#2d69eb}
   label.opt small{font-weight:400;color:var(--ink2);font-size:14px}
-  /* picto « 1er joueur » (emoji 1️⃣) */
-  .fl{font-size:16px;line-height:1;vertical-align:-1px;margin-left:6px}
+  /* « 1 » dans le dot du 1er joueur ; « er » toujours en exposant */
+  sup{font-size:.62em;line-height:0}
+  .npill{display:inline-block;max-width:100%;padding:5px 12px;border-radius:999px;font-size:14px;font-weight:700;line-height:1.2;
+    border:1px solid rgba(255,255,255,.85);box-shadow:0 3px 10px rgba(40,60,110,.18),inset 0 1px 0 rgba(255,255,255,.5);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+  .claimbtn{display:block;width:100%;margin:8px 0;padding:14px;font-size:19px;border-radius:20px;border:1px solid rgba(255,255,255,.7)}
+  .claimbtn small{display:block;font-size:13px;opacity:.85}
   /* favoris : étoile à côté du prénom, autocomplétion du prénom */
   .pl button.star{background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0 6px;font-size:22px;line-height:1;color:#e0a800;vertical-align:-2px}
   .acwrap{position:relative;flex:1}
@@ -115,6 +121,7 @@
   .sugg.on{display:block}
   .sugg button{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:0;background:none;padding:12px 14px;font-size:17px;text-align:left;-webkit-backdrop-filter:none;backdrop-filter:none}
   .sugg button+button{border-top:1px solid rgba(27,34,51,.08)}
+  .sugg button.act{background:rgba(45,105,235,.14)}
   .stt input.num{width:68px;padding:8px 6px;font:inherit;font-size:16px;text-align:center;border-radius:8px;border:1px solid lightgray;background:rgba(255,255,255,.7);color:var(--ink)}
   .stt input.num:focus{outline:none}
 
@@ -123,8 +130,7 @@
   #gback{position:fixed;top:max(14px,env(safe-area-inset-top));left:14px;z-index:5}
   #top{display:flex;flex-direction:column;align-items:center;gap:10px;padding:max(16px,env(safe-area-inset-top)) 14px 0;position:relative;z-index:4}
   #strip{padding:9px 14px;gap:9px;flex-wrap:wrap;justify-content:center}
-  #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;transition:transform .2s,opacity .2s}
-  #strip .chip .fl{font-size:11px;margin:0;vertical-align:0}
+  #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;line-height:1;transition:transform .2s,opacity .2s}
   #strip .chip.dim{opacity:.3}
   #strip .chip.act{transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
   #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px;cursor:pointer}
@@ -165,6 +171,8 @@
   #tapc:empty{display:none}
   #end{position:fixed;right:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
     font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:#d93025}
+  #snd{position:fixed;left:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
+    font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:var(--ink2)}
 
   /* modales : messages (#modal) et fiches (#sheet : chronos, choix du 1er joueur, stats) */
   #modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px;
@@ -177,13 +185,16 @@
   #sheet{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:20px;
     background:rgba(27,34,51,.4);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
   #sheet.on{display:flex}
-  .sbox{width:min(100%,420px);max-height:88vh;overflow:auto;padding:22px;background:rgba(255,255,255,.9);display:flex;flex-direction:column;gap:14px}
+  .sbox{width:min(100%,460px);max-height:88vh;overflow:auto;padding:22px;background:rgba(255,255,255,.9);display:flex;flex-direction:column;gap:14px}
   .sh-title{font-size:22px;font-weight:700;text-align:center}
   .sh-sub{font-size:14px;color:var(--ink2);text-align:center;line-height:1.4}
   table.stt{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
   .stt th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);text-align:left;padding:4px 6px;font-weight:700}
   .stt td{padding:9px 6px;border-top:1px solid rgba(27,34,51,.08)}
   .stt tr.tot td{font-weight:700}
+  .stt.ctr th,.stt.ctr td{text-align:center;vertical-align:middle;white-space:nowrap}
+  .stt.ctr th:first-child,.stt.ctr td:first-child{text-align:left}
+  .sh-game{font-size:32px;font-weight:800;text-align:center;letter-spacing:-.02em;line-height:1.1;word-break:break-word}
   .dot2{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;border:1px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);vertical-align:-1px}
   #rwfx{position:fixed;z-index:50;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
     background:rgba(27,34,51,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;
@@ -191,6 +202,14 @@
   #rwfx.on{opacity:1}
   #rwfx svg{width:130px;height:130px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:ccw .8s linear infinite}
   #rwtxt{font-size:19px;font-weight:500;opacity:.9}
+  /* Time out : fond noir, texte blanc, sablier */
+  #tofx{position:fixed;z-index:95;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    background:#000;color:#fff;text-align:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+  #tofx.on{opacity:1;pointer-events:auto}
+  #tofx svg{width:130px;height:130px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation:flip 1.5s ease-in-out infinite}
+  @keyframes flip{0%,35%{transform:rotate(0)}65%,100%{transform:rotate(180deg)}}
+  #totitle{font-size:40px;font-weight:800;letter-spacing:.02em}
+  #totxt{font-size:20px;font-weight:500;opacity:.9}
 
   /* clignotements : la couleur du joueur alterne avec une version pâle */
   .flash{animation:blink 1s steps(1) 3}
@@ -223,8 +242,16 @@
     <div class="codeval" id="lobbyCode"></div>
     <div class="hint ctr" id="lobbyExt" style="margin:0 0 6px"></div>
 
-    <div class="glass card">
-      <h2>Ajouter un joueur</h2>
+    <!-- joueur : écran 1 -->
+    <div class="glass card" id="pickCard" style="display:none">
+      <h2>Choisir un joueur</h2>
+      <div class="hint" id="pickMe" style="margin:0 0 12px"></div>
+      <div class="row"><button id="pickBtn" class="pri">Choisir mon prénom et ma couleur</button></div>
+    </div>
+
+    <div class="glass card" id="addCard">
+      <h2 id="addTitle">Ajouter un joueur</h2>
+      <div id="claimBox"></div>
       <div class="row">
         <div class="acwrap">
           <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
@@ -233,10 +260,12 @@
         <input id="pcolor" type="color" value="#e53935">
       </div>
       <div class="err" id="nameErr"></div>
-      <div class="row"><button id="addP" class="pri">Ajouter</button></div>
+      <div class="row"><button id="addP" class="pri">Ajouter</button><button id="addCancel" style="display:none">Annuler</button></div>
     </div>
 
-    <div class="glass card">
+    <div class="row" id="optToggleRow" style="display:none"><button id="optToggle">Voir le mode de jeu et les options</button></div>
+
+    <div class="glass card" id="ordCard">
       <div class="h2row">
         <h2>Ordre de passage</h2>
         <button id="rand" class="pri sm" disabled>1<sup>er</sup> joueur au hasard</button>
@@ -244,7 +273,7 @@
       <div id="plist"></div>
     </div>
 
-    <div class="glass card">
+    <div class="glass card" id="modeCard">
       <h2>Mode de jeu</h2>
       <label class="opt"><input type="radio" name="mode" value="seq"><span>Tour par tour<br><small>On joue à tour de rôle.</small></span></label>
       <label class="opt"><input type="radio" name="mode" value="sim"><span>Simultané<br><small>Tout le monde joue en même temps.</small></span></label>
@@ -254,15 +283,16 @@
     
     <div class="glass card" id="optCard">
       <h2>Options</h2>
-      <label class="opt" id="lblRounds"><input type="checkbox" id="optRounds"><span>Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu'à ce que tout le monde ait passé.</small></span></label>
-      <label class="opt" id="lblRotate"><input type="checkbox" id="optRotate"><span>Changement de 1<sup>er</sup> joueur à chaque manche<br><small>En fin de manche, on choisit le nouveau 1<sup>er</sup>joueur.</small></span></label>
+      <label class="opt" id="lblRounds"><input type="checkbox" id="optRounds"><span id="roundsTxt">Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu'à ce que tout le monde ait passé.</small></span></label>
+      <label class="opt" id="lblRotate"><input type="checkbox" id="optRotate"><span>Changement de 1<sup>er</sup> joueur à chaque manche<br><small>En fin de manche, on choisit le nouveau 1<sup>er</sup> joueur.</small></span></label>
 
       <label class="opt" id="lblRewind"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
       <label class="opt" id="lblHurry"><input type="checkbox" id="optHurry"><span id="hurryTxt"></span></label>
     </div>
 
-    <div class="row" style="margin-top:16px"><button id="start" class="pri" disabled>Rejoindre</button></div>
+    <div class="row" id="startRow" style="margin-top:16px"><button id="start" class="pri" disabled>Rejoindre</button></div>
     <div class="hint ctr" id="startHint"></div>
+    <div class="row" id="cancelRow" style="margin-top:6px"><button id="cancelLobby">Annuler</button></div>
   </div>
 </div>
 
@@ -302,10 +332,11 @@
   </div>
   <div id="tapc"></div>
   <button id="end">Terminer la partie</button>
+  <button id="snd">Son activé</button>
 </div>
 
 <!-- Déconnexion : oublie la session sur cet appareil (hors page de garde) -->
-<button id="logout" style="display:none;position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:60;font-size:14px;padding:6px 14px">Déconnexion</button>
+<button id="logout" style="display:none;position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:60;font-size:14px;padding:6px 14px;white-space:nowrap">(╯°□°)╯︵ ┻━┻</button>
 
 <!-- Fiches : chronos, choix du 1er joueur, statistiques de fin -->
 <div id="sheet">
@@ -331,6 +362,13 @@
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
   <div>Rewind</div>
   <div id="rwtxt"></div>
+</div>
+
+<!-- Time out : fond noir, texte blanc, sablier (3 s) -->
+<div id="tofx">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12M6 22h12M7 2v4.2a5 5 0 0 0 1.6 3.6L12 12l-3.4 2.2A5 5 0 0 0 7 17.8V22M17 2v4.2a5 5 0 0 1-1.6 3.6L12 12l3.4 2.2a5 5 0 0 1 1.6 3.6V22"/></svg>
+  <div id="totitle">Time out</div>
+  <div id="totxt"></div>
 </div>
 
 <!-- Firebase : chaque module n'est chargé qu'UNE seule fois, avant le script principal -->
@@ -364,15 +402,55 @@ const nowS = () => Date.now() + srvOff;
 
 const LIGHT = 'radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),#eef2fa';
 const PALETTE = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
-const FLAG = '<span class="fl" title="1er joueur">1️⃣</span>';
+/* ---------- Sons (Web Audio : aucun fichier) ---------- */
+let actx = null, sndOn = localStorage.getItem('tour_snd') !== '0';
+function unlockAudio(){
+  try {
+    if (!actx){ const AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); }
+    if (actx && actx.state === 'suspended') actx.resume();
+  } catch (e) {}
+}
+['pointerdown', 'touchend', 'keydown'].forEach(ev => document.addEventListener(ev, unlockAudio, {passive: true}));
+function tone(f, t0, d, type, vol, f2){
+  const t = actx.currentTime + t0, o = actx.createOscillator(), gn = actx.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(f, t);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+  gn.gain.setValueAtTime(0.0001, t);
+  gn.gain.exponentialRampToValueAtTime(vol || 0.25, t + 0.02);
+  gn.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(gn); gn.connect(actx.destination);
+  o.start(t); o.stop(t + d + 0.05);
+}
+// kind : 'turn' (c'est mon tour), 'alarm' (mon time out démarre), 'rewind', 'timeout' (tour passé)
+function sound(kind){
+  if (!sndOn || !actx || actx.state !== 'running') return;
+  try {
+    if (kind === 'turn'){ tone(660, 0, .18, 'sine', .3); tone(880, .16, .32, 'sine', .3); }
+    else if (kind === 'alarm'){ for (let i = 0; i < 3; i++) tone(520, i * .22, .16, 'square', .12); }
+    else if (kind === 'rewind'){ tone(900, 0, .7, 'triangle', .25, 180); }
+    else if (kind === 'timeout'){ tone(300, 0, .35, 'sawtooth', .16); tone(200, .35, .7, 'sawtooth', .16); }
+  } catch (e) {}
+}
+function syncSnd(){ $('snd').textContent = sndOn ? 'Son activé' : 'Son coupé'; }
+$('snd').onclick = e => {
+  e.stopPropagation();
+  unlockAudio();
+  sndOn = !sndOn;
+  localStorage.setItem('tour_snd', sndOn ? '1' : '0');
+  syncSnd();
+  if (sndOn) setTimeout(() => sound('turn'), 60);
+};
+syncSnd();
 
 /* ---------- Messages en modale (remplacent alert / confirm) ---------- */
-function uiModal(msg, confirmMode, okLabel){
+function uiModal(msg, confirmMode, okLabel, cancelLabel){
   return new Promise(resolve => {
     const m = $('modal');
     $('mtext').textContent = msg;
     $('mok').textContent = okLabel || 'OK';
     $('mcancel').style.display = confirmMode ? '' : 'none';
+    $('mcancel').textContent = cancelLabel || 'Annuler';
     m.classList.add('on');
     const done = v => {
       m.classList.remove('on');
@@ -400,12 +478,14 @@ function setSheet(html, okLabel, onOk, closable){
 function closeSheet(){ $('sheet').classList.remove('on'); $('sbody').onclick = null; }
 
 function show(id){
+  const prev = document.querySelector('.screen.on');
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   $('logout').style.display = id === 'home' ? 'none' : '';
+  if (!prev || prev.id !== id){ $(id).scrollTop = 0; window.scrollTo(0, 0); }   // nouvel écran : on repart en haut
 }
 // Déconnexion : libère mon joueur, oublie la table sur cet appareil et revient à l'accueil
 $('logout').onclick = async () => {
-  if (!await uiConfirm('Oublier ta session sur cet appareil et quitter la table ?', 'Déconnexion')) return;
+  if (!await uiConfirm('Oublier ta session sur cet appareil et quitter la table ?', '(╯°□°)╯︵ ┻━┻')) return;
   const r = ref, i = meIdx;
   if (r && i !== null && modeOf() !== 'solo' && modeOf() !== 'ia') r.child('claims/' + i).remove().catch(() => {});
   leaveGame();
@@ -543,7 +623,8 @@ function finishSim(cur, i, now){
   const left = [];
   for (let k = 0; k < n; k++) if (!cur.done[k]) left.push(k);
   if (!left.length){
-    cur.round = (cur.round || 1) + 1; cur.turn = (cur.turn || 1) + 1; cur.done = null;   // nouvelle manche
+    cur.round = (cur.round || 1) + 1; cur.turn = (cur.turn || 1) + 1; cur.done = null;
+    if (cur.options && cur.options.rotate) cur.reorder = {round: cur.round};   // nouvelle manche
   } else if (left.length === 1 && cur.options && cur.options.hurry){
     // « plus vite » automatique sur le dernier joueur
     cur.alarm = {player: left[0], turn: cur.turn, until: now + 30000};
@@ -582,14 +663,14 @@ function join(c){
   $('homeErr').textContent = '';
   meIdx = null;
   hadData = false; creating = false; fxInit = false; lastFx = null; lastWaiting = false; proceeded = false;
-  statsOpen = false; reorderOpen = false;
+  statsOpen = false; reorderOpen = false; adding = false; optsShown = false; lastTo = null;
   if (ref && gameCb) ref.off('value', gameCb);
   ref = db.ref('games/' + code);
   gameCb = snap => {
     const v = snap.val();
     if (v && v.ended){
       // la partie a été terminée : chacun voit les statistiques, puis revient à l'accueil
-      if (hadData){ g = v; showStats(v); }
+      if (hadData){ g = v; $('modal').classList.remove('on'); $('rwfx').classList.remove('on'); $('tofx').classList.remove('on'); disarm(); showStats(v); }
       else ref.remove();                 // reste d'une ancienne partie : on nettoie
       return;
     }
@@ -619,12 +700,20 @@ function join(c){
     }
     hadData = true;
     // animation Rewind : jouée sur tous les écrans quand un nouveau rewind est lancé
-    const fx = v.rwFx ? v.rwFx.id : null;
-    if (!fxInit){ fxInit = true; lastFx = fx; }
-    else if (fx && fx !== lastFx){
-      lastFx = fx;
-      const pl = (v.players || [])[v.rwFx.by];
-      playRewind(pl ? pl.name : '');
+    const fx = v.rwFx ? v.rwFx.id : null, tx = v.toFx ? v.toFx.id : null;
+    if (!fxInit){ fxInit = true; lastFx = fx; lastTo = tx; }
+    else {
+      if (fx && fx !== lastFx){
+        lastFx = fx;
+        const pl = (v.players || [])[v.rwFx.by];
+        playRewind(pl ? pl.name : '');
+      }
+      // Time out : le joueur pénalisé voit son tour passé, tout le monde le voit sur fond noir
+      if (tx && tx !== lastTo){
+        lastTo = tx;
+        const by = v.toFx.by, pl = (v.players || [])[by];
+        playTimeout(pl ? pl.name : '', (v.claims || {})[by] === dev, modeOf(v) === 'sim');
+      }
     }
     g = v;
     render();
@@ -634,6 +723,7 @@ function join(c){
 let creating = false, fxInit = false, lastFx = null, lastWaiting = false, waiting = false, fxTimer = null;
 let gameCb = null, proceeded = false, tableExists = false, lobbyWatch = null, lobbyCb = null;
 let statsOpen = false, reorderOpen = false, reorderRound = null, draft = null;
+let adding = false, optsShown = false, lastTo = null, toTimer = null, alarmSnd = null;
 
 // bouton de la page de garde : admin = « Créer la table », joueur = « En attente » puis « Rejoindre »
 function updateHome(){
@@ -661,8 +751,20 @@ function playRewind(name){
   $('rwtxt').textContent = name ? name + ' revient en arrière' : '';
   $('rwfx').classList.add('on');
   if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+  sound('rewind');
   clearTimeout(fxTimer);
-  fxTimer = setTimeout(() => $('rwfx').classList.remove('on'), 2000);
+  fxTimer = setTimeout(() => $('rwfx').classList.remove('on'), 3000);      // animation : 3 secondes
+}
+// Time out : fond noir, texte blanc et sablier pendant 3 secondes, sur tous les écrans
+function playTimeout(name, mine, sim){
+  $('totxt').textContent = sim
+    ? (mine ? 'Ta partie est terminée' : 'La partie de ' + name + ' est terminée')
+    : (mine ? 'Ton tour est passé' : 'Le tour de ' + name + ' est passé');
+  $('tofx').classList.add('on');
+  if (navigator.vibrate) navigator.vibrate(mine ? [400, 100, 400] : [150]);
+  sound('timeout');
+  clearTimeout(toTimer);
+  toTimer = setTimeout(() => $('tofx').classList.remove('on'), 3000);
 }
 
 // quand l'administrateur crée une table : le champ « nom de la table » des joueurs se remplit
@@ -683,7 +785,8 @@ db.ref('lobby').on('value', s => {
 function leaveGame(){
   if (ref && gameCb) ref.off('value', gameCb);
   ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null; proceeded = false;
-  statsOpen = false; reorderOpen = false;
+  statsOpen = false; reorderOpen = false; adding = false; optsShown = false;
+  $('tofx').classList.remove('on'); $('rwfx').classList.remove('on');
   closeSheet();
   disarm();
   localStorage.removeItem('tour_code');
@@ -740,28 +843,42 @@ function render(){
 }
 
 /* ---------- Préparation ---------- */
-const HURRY_SEQ = 'Mode « Plus vite ! »<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
-const HURRY_SIM = 'Mode « Plus vite ! » au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
+const HURRY_SEQ = 'Mode « Time out »<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
+const HURRY_SIM = 'Mode « Time out » au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
+const ROUNDS_SEQ = 'Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu\'à ce que tout le monde ait passé.</small>';
+const ROUNDS_SIM = 'Jeu par manche<br><small>Les parties sont comptées en manches : une manche se termine quand tout le monde a fini.</small>';
+
+// « 1 » dans le dot du 1er joueur ; prénom dans une pilule à la couleur du joueur
+function dotHtml(p, first){
+  return `<div class="dot" style="background:${esc(p.color)};color:${textOn(p.color)}">${first ? '1' : ''}</div>`;
+}
+function pill(p){
+  return `<span class="npill" style="background:${esc(p.color)};color:${textOn(p.color)}">${esc(p.name)}</span>`;
+}
+
 function renderLobby(){
   show('lobby');
   $('lobbyCode').textContent = g.name || code;
   $('lobbyExt').textContent = g.ext ? 'avec extension' : '';
-  const adm = isAdmin(), mode = modeOf();
-  const showFirst = mode === 'seq' || mode === 'ia';
-  const list = players(), box = $('plist');
+  const adm = isAdmin(), mode = modeOf(), o = g.options || {}, started = !!g.started;
+  const seqIa = mode === 'seq' || mode === 'ia', sim = mode === 'sim';
+  const showFirst = seqIa || (sim && !!o.rotate);
+  const list = players(), box = $('plist'), claims = g.claims || {}, myI = myIdx();
+  const canPick = !adm && !started && (mode === 'seq' || sim);     // joueur : choisir / ajouter mon prénom
+  if (!canPick) adding = false;
   box.innerHTML = '';
   if (!list.length){
     box.innerHTML = '<div class="hint" style="margin:0">Aucun joueur pour l\'instant.</div>';
   }
   list.forEach((p, i) => {
     const d = document.createElement('div'); d.className = 'pl';
-    d.innerHTML = `<div class="dot" style="background:${p.color}"></div><div class="nm">${i+1}. ${esc(p.name)}${i === 0 && showFirst ? FLAG : ''}</div>`;
+    d.innerHTML = dotHtml(p, i === 0 && showFirst) + `<div class="nm">${i+1}. ${esc(p.name)}</div>`;
     const up = document.createElement('button'); up.textContent = '↑'; up.disabled = i === 0;
-    up.onclick = () => move(i, -1);
+    up.onclick = () => move(i, -1, p.name);
     const dn = document.createElement('button'); dn.textContent = '↓'; dn.disabled = i === list.length - 1;
-    dn.onclick = () => move(i, 1);
+    dn.onclick = () => move(i, 1, p.name);
     const rm = document.createElement('button'); rm.textContent = '✕';
-    rm.onclick = () => { const a = list.slice(); a.splice(i, 1); ref.child('players').set(a); };
+    rm.onclick = () => removePlayer(i, p.name);
     // étoile vide / pleine : enregistre le prénom et la couleur en favoris
     const star = document.createElement('button'); star.className = 'star';
     const isFav = !!favs[slug(p.name)];
@@ -769,52 +886,121 @@ function renderLobby(){
     star.title = isFav ? 'Favori' : 'Ajouter aux favoris';
     star.onclick = () => toggleFav(p);
     d.querySelector('.nm').appendChild(star);
-    if (adm) d.append(up, dn);          // seul l'admin change l'ordre
-    d.append(rm); box.append(d);
+    if (adm && !started) d.append(up, dn);                               // seul l'admin change l'ordre
+    if (!started && (adm || claims[i] === dev)) d.append(rm);            // un joueur ne retire que le sien
+    box.append(d);
   });
 
-  // mode de jeu et options (modifiables par l'admin seulement)
-  document.querySelectorAll('input[name=mode]').forEach(r => { r.checked = r.value === mode; r.disabled = !adm || !!g.started; });
-  const o = g.options || {};
+  // ----- interface joueur : « Choisir un joueur » / « Ajouter un joueur »
+  const meP = myI !== null ? list[myI] : null;
+  $('pickCard').style.display = canPick && !adding ? '' : 'none';
+  $('addCard').style.display = adm ? (started ? 'none' : '') : (canPick && adding ? '' : 'none');
+  $('addCancel').style.display = adm ? 'none' : '';
+  $('pickMe').innerHTML = meP ? 'Tu joues : ' + pill(meP) : 'Pas encore de joueur choisi.';
+  $('pickBtn').textContent = meP ? 'Changer de joueur' : 'Choisir mon prénom et ma couleur';
+  const cb = $('claimBox'); cb.innerHTML = '';
+  if (!adm && canPick && adding && list.length){
+    const t = document.createElement('div'); t.className = 'hint'; t.style.margin = '0 0 4px';
+    t.textContent = 'Je suis déjà dans la liste :'; cb.append(t);
+    list.forEach((p, i) => {
+      const taken = claims[i] != null && claims[i] !== dev;
+      const b = document.createElement('button'); b.className = 'claimbtn';
+      b.innerHTML = esc(p.name) + (taken ? '<small>déjà pris</small>' : (claims[i] === dev ? '<small>c\'est moi</small>' : ''));
+      b.disabled = taken;
+      b.style.background = p.color; b.style.color = textOn(p.color);
+      b.onclick = () => { adding = false; claim(i); renderLobby(); };
+      cb.append(b);
+    });
+    const t2 = document.createElement('div'); t2.className = 'hint'; t2.style.margin = '14px 0 12px';
+    t2.textContent = 'Sinon, ajoute ton prénom et ta couleur :'; cb.append(t2);
+  }
+
+  // ----- mode de jeu et options : modifiables par l'admin, consultables par les joueurs à la demande
+  const seeOpts = adm || optsShown;
+  $('optToggleRow').style.display = adm ? 'none' : '';
+  $('optToggle').textContent = optsShown ? 'Masquer le mode de jeu et les options' : 'Voir le mode de jeu et les options';
+  $('modeCard').style.display = seeOpts ? '' : 'none';
+  document.querySelectorAll('input[name=mode]').forEach(r => { r.checked = r.value === mode; r.disabled = !adm || started; });
   $('optHurry').checked = !!o.hurry;
   $('optRewind').checked = !!o.rewind;
   $('optRounds').checked = !!o.rounds;
   $('optRotate').checked = !!o.rotate;
-  ['optHurry', 'optRewind', 'optRounds', 'optRotate'].forEach(id => { $(id).disabled = !adm || !!g.started; });
-  const seqIa = mode === 'seq' || mode === 'ia';
+  ['optHurry', 'optRewind', 'optRounds', 'optRotate'].forEach(id => { $(id).disabled = !adm || started; });
   $('lblRewind').style.display = seqIa ? '' : 'none';
-  $('lblHurry').style.display = (mode === 'seq' || mode === 'sim') ? '' : 'none';
-  $('lblRounds').style.display = seqIa ? '' : 'none';
-  $('lblRotate').style.display = seqIa ? '' : 'none';
-  $('optCard').style.display = mode === 'solo' ? 'none' : '';
-  $('hurryTxt').innerHTML = mode === 'sim' ? HURRY_SIM : HURRY_SEQ;
-  $('rand').style.display = adm && mode === 'seq' && !g.started ? '' : 'none';
+  $('lblHurry').style.display = (mode === 'seq' || sim) ? '' : 'none';
+  $('lblRounds').style.display = (seqIa || sim) ? '' : 'none';      // « par manche » et « changement de 1er joueur » aussi en simultané
+  $('lblRotate').style.display = (seqIa || sim) ? '' : 'none';
+  $('roundsTxt').innerHTML = sim ? ROUNDS_SIM : ROUNDS_SEQ;
+  $('optCard').style.display = (mode === 'solo' || !seeOpts) ? 'none' : '';
+  $('hurryTxt').innerHTML = sim ? HURRY_SIM : HURRY_SEQ;
+  $('rand').style.display = adm && !started && (mode === 'seq' || (sim && !!o.rotate)) ? '' : 'none';
   $('rand').disabled = list.length < 2;
 
-  // admin : « Lancer la partie » ; joueurs : « Rejoindre », actif une fois la partie lancée
+  // admin : « Lancer la partie » ; joueurs : attente du lancement, puis « Rejoindre » si besoin
   const sb = $('start');
   let ok = true, hint = '';
   if (mode === 'solo'){ ok = list.length === 1; if (list.length > 1) hint = 'Solo : un seul joueur.'; }
   else if (mode === 'ia'){ ok = list.filter(p => !p.ai).length === 1; if (list.length > 1) hint = "Avec l'IA : un seul joueur (l'IA est ajoutée au lancement)."; }
   else ok = list.length >= 2;
-  if (adm && !g.started){ sb.textContent = 'Lancer la partie'; sb.disabled = !ok; $('startHint').textContent = hint; }
-  else { sb.textContent = 'Rejoindre'; sb.disabled = !g.started || mode === 'solo' || mode === 'ia'; $('startHint').textContent = ''; }
+  if (adm && !started){
+    $('startRow').style.display = '';
+    sb.textContent = 'Lancer la partie'; sb.disabled = !ok; $('startHint').textContent = hint;
+  } else if (started){
+    $('startRow').style.display = '';
+    sb.textContent = 'Rejoindre'; sb.disabled = mode === 'solo' || mode === 'ia'; $('startHint').textContent = '';
+  } else {
+    $('startRow').style.display = 'none';
+    $('startHint').textContent = "En attente du lancement de la partie par l'administrateur.";
+  }
+  $('cancelRow').style.display = started ? 'none' : '';
 
   // si la couleur proposée vient d'être prise (par moi ou un autre téléphone), on en propose une libre
   if (list.some(p => String(p.color).toLowerCase() === $('pcolor').value.toLowerCase())) $('pcolor').value = freeColor();
 }
-function move(i, d){
-  const a = players().slice(), j = i + d;
-  [a[i], a[j]] = [a[j], a[i]];
-  ref.child('players').set(a);
+
+// modifie la liste des joueurs AVANT le lancement : les choix de prénom (claims) suivent les joueurs
+function editPlayers(makePerm){
+  ref.transaction(cur => {
+    if (!cur || cur.started) return;
+    const perm = makePerm(cur.players || []);
+    if (!perm) return;
+    applyReorder(cur, perm, nowS());
+    return cur;
+  });
+}
+function move(i, d, name){
+  editPlayers(a => {
+    const j = i + d;
+    if (!a[i] || !a[j] || a[i].name !== name) return null;
+    const perm = a.map((_, k) => k); perm[i] = j; perm[j] = i;
+    return perm;
+  });
+}
+function removePlayer(i, name){
+  editPlayers(a => (a[i] && a[i].name === name) ? a.map((_, k) => k).filter(k => k !== i) : null);
 }
 // tire un joueur au hasard et le place en premier (les autres gardent leur ordre, à ajuster avec les flèches)
 $('rand').onclick = () => {
-  const a = players().slice();
-  if (a.length < 2) return;
-  const p = a.splice(Math.floor(Math.random() * a.length), 1)[0];
-  a.unshift(p);
-  ref.child('players').set(a);
+  editPlayers(a => {
+    if (a.length < 2) return null;
+    const r = Math.floor(Math.random() * a.length);
+    return [r].concat(a.map((_, k) => k).filter(k => k !== r));
+  });
+};
+$('pickBtn').onclick = () => { adding = true; renderLobby(); };
+$('addCancel').onclick = () => { adding = false; nameErr(''); hideSugg(); renderLobby(); };
+$('optToggle').onclick = () => { optsShown = !optsShown; renderLobby(); };
+// Annuler la préparation : l'admin supprime la table pour tous, un joueur quitte simplement
+$('cancelLobby').onclick = async () => {
+  if (!ref) return;
+  if (isAdmin()){
+    if (!await uiConfirm('Annuler la préparation ? La table sera supprimée pour tous les joueurs.', 'Annuler la table')) return;
+    ref.remove().then(() => db.ref('lobby').remove().catch(() => {})).catch(e => uiAlert('Erreur : ' + e.message));
+  } else {
+    const r = ref, i = myIdx();
+    if (i !== null) r.child('claims/' + i).remove().catch(() => {});
+    leaveGame();
+  }
 };
 document.querySelectorAll('input[name=mode]').forEach(r => {
   r.onchange = e => { if (isAdmin() && e.target.checked) ref.child('options/mode').set(e.target.value); };
@@ -841,39 +1027,68 @@ function addPlayer(){
     if (a.some(p => String(p.color).toLowerCase() === color)){ reason = 'Cette couleur est déjà prise.'; return; }
     a.push({name, color});
     return a;
-  }, (err, committed) => {
+  }, (err, committed, snap) => {
     if (err){ nameErr(err.code === 'PERMISSION_DENIED' || /permission/i.test(err.message) ? "Seul l'administrateur peut créer une partie." : 'Erreur : ' + err.message); return; }
     if (!committed){ nameErr(reason || 'Impossible d\'ajouter ce joueur.'); return; }
     nameErr('');
     $('pname').value = '';
     $('pcolor').value = freeColor();
-    $('pname').focus();
+    if (!isAdmin()){
+      const arr = snap && snap.val(), idx = Array.isArray(arr) ? arr.findIndex(x => x && norm(x.name) === norm(name)) : -1;
+      adding = false;
+      if (idx >= 0) claim(idx);
+      renderLobby();
+    } else $('pname').focus();
   });
 }
 $('addP').onclick = addPlayer;
-$('pname').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addPlayer(); } });
+$('pname').addEventListener('keydown', e => {
+  const open = suggList.length > 0;
+  if (open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')){
+    e.preventDefault();
+    const n = suggList.length;
+    suggIdx = e.key === 'ArrowDown' ? (suggIdx + 1) % n : (suggIdx <= 0 ? n - 1 : suggIdx - 1);
+    markSugg();
+    return;
+  }
+  if (e.key === 'Escape' && open){ e.preventDefault(); hideSugg(); return; }
+  if (e.key === 'Enter'){
+    e.preventDefault();
+    if (open && suggIdx >= 0){ pickSugg(suggList[suggIdx]); return; }   // suggestion choisie au clavier
+    addPlayer();
+  }
+});
 $('pname').addEventListener('input', () => { nameErr(''); $('pname').classList.remove('bad'); showSugg(); });
 $('pcolor').addEventListener('input', () => nameErr(''));
 
 /* ---------- Autocomplétion du prénom (favoris), à partir de 2 lettres ---------- */
-function hideSugg(){ $('sugg').classList.remove('on'); $('sugg').innerHTML = ''; }
+let suggList = [], suggIdx = -1;
+function hideSugg(){ suggList = []; suggIdx = -1; $('sugg').classList.remove('on'); $('sugg').innerHTML = ''; }
+function markSugg(){
+  const kids = [...$('sugg').children];
+  kids.forEach((b, i) => b.classList.toggle('act', i === suggIdx));
+  const a = kids[suggIdx];
+  if (a && a.scrollIntoView) a.scrollIntoView({block: 'nearest'});
+}
+function pickSugg(f){
+  $('pname').value = f.name;
+  const used = players().some(p => String(p.color).toLowerCase() === String(f.color).toLowerCase());
+  $('pcolor').value = used ? freeColor() : f.color;      // sa couleur favorite, sauf si elle est déjà prise
+  $('pname').classList.remove('bad');
+  hideSugg(); nameErr('');
+}
 function showSugg(){
   const v = norm($('pname').value);
   if (v.length < 2){ hideSugg(); return; }
   const taken = players().map(p => norm(p.name));
   const m = Object.keys(favs).map(k => favs[k]).filter(f => f && f.name && norm(f.name).startsWith(v) && !taken.includes(norm(f.name))).slice(0, 5);
   if (!m.length){ hideSugg(); return; }
+  suggList = m; suggIdx = -1;
   const box = $('sugg'); box.innerHTML = '';
   m.forEach(f => {
     const b = document.createElement('button');
     b.innerHTML = `<span class="dot2" style="background:${esc(f.color)};margin:0"></span>${esc(f.name)}`;
-    b.onpointerdown = e => {
-      e.preventDefault();
-      $('pname').value = f.name;
-      const used = players().some(p => String(p.color).toLowerCase() === String(f.color).toLowerCase());
-      $('pcolor').value = used ? freeColor() : f.color;      // sa couleur favorite, sauf si elle est déjà prise
-      hideSugg(); nameErr('');
-    };
+    b.onpointerdown = e => { e.preventDefault(); pickSugg(f); };
     box.append(b);
   });
   box.classList.add('on');
@@ -901,7 +1116,12 @@ function launch(){
     if (mode === 'solo' || mode === 'ia'){
       cur.claims = {}; pl.forEach((p, i) => { cur.claims[i] = dev; });   // ce téléphone joue tous les joueurs
       cur.go = true;
-    } else cur.go = false;                                              // le chrono démarre quand tout le monde a choisi son nom
+    } else {
+      // le chrono démarre quand tout le monde a choisi son prénom (certains l'ont peut-être déjà fait)
+      const c = cur.claims || {}; let k = 0;
+      for (let i = 0; i < pl.length; i++) if (c[i] != null) k++;
+      cur.go = pl.length > 0 && k >= pl.length;
+    }
     applyTiming(cur, nowS());
     return cur;
   });
@@ -914,7 +1134,14 @@ $('start').onclick = () => {
 
 /* ---------- Qui es-tu ? ---------- */
 function claim(i){
-  ref.child('claims/' + i).transaction(v => v ? undefined : dev, (err, ok) => { if (ok) checkGo(); });
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    const c = cur.claims = cur.claims || {};
+    if (c[i] != null && c[i] !== dev) return;                 // déjà pris par un autre téléphone
+    for (const k in c) if (c[k] === dev) delete c[k];         // un seul joueur par téléphone
+    c[i] = dev;
+    return cur;
+  }, (err, ok) => { if (ok) checkGo(); });
 }
 // quand tout le monde a choisi son nom, les chronos démarrent
 function checkGo(){
@@ -964,7 +1191,7 @@ function renderTimers(){
 function renderGame(){
   show('game');
   const list = players(), n = list.length, mode = modeOf(), o = g.options || {};
-  const isSim = mode === 'sim', isSolo = mode === 'solo', showFirst = mode === 'seq' || mode === 'ia';
+  const isSim = mode === 'sim', isSolo = mode === 'solo', showFirst = mode === 'seq' || mode === 'ia' || (isSim && !!o.rotate);
   const hostAll = mode === 'solo' || mode === 'ia';
   const cur = g.current % n, me = list[meIdx], gs = $('game');
   const done = g.done || {}, passed = g.passed || {};
@@ -1001,12 +1228,12 @@ function renderGame(){
     let cls = '';
     if (isSim) cls = done[i] ? 'dim' : '';
     else cls = (i === cur ? 'act ' : '') + (passed[i] ? 'dim' : '');
-    return `<div class="chip ${cls}" style="background:${p.color};color:${textOn(p.color)}">${i === 0 && showFirst ? FLAG : ''}</div>`;
+    return `<div class="chip ${cls}" style="background:${p.color};color:${textOn(p.color)}">${i === 0 && showFirst ? '1' : ''}</div>`;
   }).join('');
   // par manche : « Manche M · Tour N » (la manche ne change que quand tout le monde a passé) ; sinon « Tour N »
   $('turnno').textContent = (o.rounds && !isSim)
     ? 'Manche ' + (g.round || 1) + ' · Tour ' + (g.cycle || 1)
-    : 'Tour ' + (g.round || 1);
+    : (o.rounds ? 'Manche ' : 'Tour ') + (g.round || 1);
 
   // mon nom : pastille à ma couleur, texte adapté
   const mn = $('myname');
@@ -1041,11 +1268,13 @@ function renderGame(){
     gs.style.background = `radial-gradient(90% 55% at 50% 0%,rgba(255,255,255,.45),transparent 70%),${me.color}`;
     if (alMine){
       setBlink(rem <= 5 ? 'fast' : 'slow');
+      if (alarmSnd !== al.until){ alarmSnd = al.until; sound('alarm'); }
     } else if (prevCurrent !== key || lastWaiting){
       myTurnSince = Date.now();
       setBlink('');
       setBlink('flash');
       if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
+      sound('turn');
     } else if (gs.dataset.blink === 'slow' || gs.dataset.blink === 'fast'){
       setBlink('');
     }
@@ -1059,7 +1288,7 @@ function renderGame(){
   const big = $('big'), sub = $('sub');
   big.className = '';
   if (reorder){
-    big.className = 'msg'; big.textContent = 'Nouvelle manche'; sub.textContent = 'Choix du 1er joueur…';
+    big.className = 'msg'; big.textContent = 'Nouvelle manche'; sub.innerHTML = 'Choix du 1<sup>er</sup> joueur…';
   } else if (waiting){
     if (isSim){ big.className = 'msg'; big.textContent = 'Tout le monde joue en même temps'; sub.textContent = 'dès que tous sont prêts'; }
     else { big.textContent = act.name; sub.textContent = 'commence'; }
@@ -1163,12 +1392,12 @@ function syncReorder(){
 function drawReorder(){
   const list = players();
   let h = '<div class="sh-title">Nouvelle manche</div>' +
-          '<div class="sh-sub">Choisis le 1er joueur (« 1er ») ou réorganise l\'ordre du tour, puis valide.</div><div>';
+          '<div class="sh-sub">Choisis le 1<sup>er</sup> joueur (bouton « 1<sup>er</sup> ») ou réorganise l\'ordre du tour, puis valide.</div><div>';
   draft.forEach((oi, pos) => {
     const p = list[oi];
-    h += `<div class="pl"><div class="dot" style="background:${p.color}"></div>` +
-         `<div class="nm">${pos + 1}. ${esc(p.name)}${pos === 0 ? FLAG : ''}</div>` +
-         (pos > 0 ? `<button data-a="first" data-p="${pos}">1er</button>` : '') +
+    h += `<div class="pl">${dotHtml(p, pos === 0)}` +
+         `<div class="nm">${pos + 1}. ${esc(p.name)}</div>` +
+         (pos > 0 ? `<button data-a="first" data-p="${pos}">1<sup>er</sup></button>` : '') +
          `<button data-a="up" data-p="${pos}" ${pos === 0 ? 'disabled' : ''}>↑</button>` +
          `<button data-a="dn" data-p="${pos}" ${pos === draft.length - 1 ? 'disabled' : ''}>↓</button></div>`;
   });
@@ -1210,21 +1439,48 @@ $('end').onclick = async () => {
   // classement et points (facultatifs)
   const list = players(), two = list.length > 1;
   let h = '<div class="sh-title">Résultat</div><div class="sh-sub">Indique le classement et les points (facultatif).<br>Touche en dehors pour annuler.</div>' +
-    '<table class="stt"><thead><tr><th>Joueur</th>' + (two ? '<th>Rang</th>' : '') + '<th>Points</th></tr></thead><tbody>';
+    '<table class="stt ctr"><thead><tr><th>Joueur</th>' + (two ? '<th>Rang</th>' : '') + '<th>Points</th></tr></thead><tbody>';
   list.forEach((p, i) => {
-    h += `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td>` +
+    h += `<tr><td>${pill(p)}</td>` +
          (two ? `<td><input class="num" id="rk${i}" type="number" inputmode="numeric" min="1" step="1"></td>` : '') +
          `<td><input class="num" id="pt${i}" type="number" inputmode="decimal" step="any"></td></tr>`;
   });
   setSheet(h + '</tbody></table>', 'Terminer la partie', finishGame, true);
 };
-function finishGame(){
+
+// cohérence rang / points : renvoie la liste des anomalies (vide = tout va bien)
+function checkResults(list, rank, pts){
+  const out = [], n = list.length, nm = i => list[i].name;
+  const rk = Object.keys(rank);
+  rk.forEach(i => { if (!(rank[i] >= 1 && rank[i] <= n && rank[i] % 1 === 0)) out.push('Le rang de ' + nm(i) + ' (' + rank[i] + ') doit être un entier entre 1 et ' + n + '.'); });
+  if (rk.length && rk.length < n) out.push('Le classement est incomplet : ' + rk.length + ' rang(s) saisi(s) pour ' + n + ' joueurs.');
+  if (rk.length && !rk.some(i => rank[i] === 1)) out.push('Aucun joueur n\'est classé n°1.');
+  const both = rk.filter(i => pts[i] != null);
+  let desc = 0, asc = 0;
+  for (let a = 0; a < both.length; a++){
+    for (let b = a + 1; b < both.length; b++){
+      const x = both[a], y = both[b], dp = pts[x] - pts[y], dr = rank[x] - rank[y];
+      if (dp === 0 && dr !== 0) out.push(nm(x) + ' et ' + nm(y) + ' ont les mêmes points mais des rangs différents.');
+      else if (dp !== 0 && dr === 0) out.push(nm(x) + ' et ' + nm(y) + ' ont le même rang mais des points différents.');
+      else if (dp !== 0){ if ((dp > 0) === (dr < 0)) desc++; else asc++; }   // plus de points = meilleur rang (ou l'inverse)
+    }
+  }
+  if (desc && asc) out.push('Le classement ne suit pas les points : certains ont plus de points et un moins bon rang, d\'autres l\'inverse.');
+  return out.slice(0, 5);
+}
+async function finishGame(){
   const list = players(), rank = {}, pts = {};
   list.forEach((p, i) => {
     const rk = $('rk' + i), pt = $('pt' + i);
     if (rk && rk.value !== '' && !isNaN(+rk.value)) rank[i] = +rk.value;
     if (pt && pt.value !== '' && !isNaN(+pt.value)) pts[i] = +pt.value;
   });
+  const issues = checkResults(list, rank, pts);
+  if (issues.length){
+    // « Modifier » ramène à la saisie (la fiche reste ouverte), « Valider » termine la partie telle quelle
+    const sure = await uiModal('Les résultats semblent incohérents :\n\n• ' + issues.join('\n• ') + '\n\nÊtes-vous sûr de ces résultats ?', true, 'Valider', 'Modifier');
+    if (!sure) return;
+  }
   // pas de rang saisi mais des points : classement automatique (ex æquo = même rang)
   if (!Object.keys(rank).length && Object.keys(pts).length > 1){
     const ids = Object.keys(pts).sort((a, b) => pts[b] - pts[a]);
@@ -1242,6 +1498,7 @@ function finishGame(){
     applyTiming(cur, nowS());          // fige tous les chronos
     return cur;
   }, (err, ok, snap) => {
+    if (err){ uiAlert('Impossible de terminer la partie : ' + err.message); return; }
     if (!ok) return;
     try { saveStats(snap.val()); } catch (e) {}
     setTimeout(() => r.remove(), 60000);      // la base est vidée une minute plus tard
@@ -1281,16 +1538,17 @@ function showStats(v){
   const rows = list.map((p, i) => {
     const hu = ((v.st && v.st.hurry) || {})[i] || 0;
     const rw = v.rw && v.rw[i] ? 'Oui' : '—';
-    return `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td>` +
+    return `<tr><td>${pill(p)}</td>` +
            (rkm ? `<td>${rkm[i] != null ? rkm[i] : '—'}</td>` : '') + (ptm ? `<td>${ptm[i] != null ? ptm[i] : '—'}</td>` : '') +
            `<td>${fmt(elapsed(i, v))}</td>` +
            (showHurry ? `<td>${hu}</td>` : '') + (showRw ? `<td>${rw}</td>` : '') + '</tr>';
   }).join('');
+  const nb = v.round || 1, unit = (o.rounds ? 'manche' : 'tour') + (nb > 1 ? 's' : '');
   const html = '<div class="sh-title">Fin de la partie</div>' +
-    (v.name ? `<div class="sh-sub"><b>${esc(v.name)}</b>${v.ext ? ' (avec extension)' : ''}</div>` : '') +
-    `<div class="sh-sub">Durée totale ${fmt(totalMs(v))}${mode === 'solo' ? '' : ' · ' + (v.round || 1) + (v.options && v.options.rounds && mode !== 'sim' ? (((v.round || 1) > 1) ? ' manches' : ' manche') : (((v.round || 1) > 1) ? ' tours' : ' tour'))}</div>` +
-    '<table class="stt"><thead><tr><th>Joueur</th>' + (rkm ? '<th>Rang</th>' : '') + (ptm ? '<th>Points</th>' : '') + '<th>Temps de jeu</th>' +
-    (showHurry ? '<th>« Plus vite »</th>' : '') + (showRw ? '<th>Rewind</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    (v.name ? `<div class="sh-game">${esc(v.name)}</div>` + (v.ext ? '<div class="sh-sub">avec extension</div>' : '') : '') +
+    `<div class="sh-sub">Durée totale ${fmt(totalMs(v))}${mode === 'solo' ? '' : ' · ' + nb + ' ' + unit}</div>` +
+    '<table class="stt ctr"><thead><tr><th>Joueur</th>' + (rkm ? '<th>Rang</th>' : '') + (ptm ? '<th>Points</th>' : '') + '<th>Temps</th>' +
+    (showHurry ? '<th>Time out</th>' : '') + (showRw ? '<th>Rewind</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
   setSheet(html, 'Fermer', () => leaveGame(), false);
 }
 
@@ -1372,7 +1630,7 @@ $('game').addEventListener('pointerdown', e => {
   const n = players().length;
   if (g.current % n === meIdx) return;                       // c'est mon tour : pas de vote
   if (g.alarm && g.alarm.turn === g.turn) return;            // alarme déjà en cours
-  if (e.target.closest('#myname,#end,#gback,#pass,#turnno')) return;
+  if (e.target.closest('#myname,#end,#gback,#pass,#turnno,#snd')) return;
   const t = Date.now();
   taps.push(t);
   while (taps.length && t - taps[0] > 10000) taps.shift();
@@ -1420,6 +1678,7 @@ function expireAlarm(){
     if (modeOf(cur) === 'sim') finishSim(cur, pen, now);       // simultané : sa partie est terminée d'office
     else advance(cur, 'skip', now);
     cur.skipped = {player: pen, turn: cur.turn, until: now + 4000};
+    cur.toFx = {id: now + '-' + pen, by: pen};                  // déclenche l'écran « Time out » (3 s) sur tous les téléphones
     return cur;
   });
 }
@@ -1470,7 +1729,7 @@ if (last){ $('code').value = last; join(last); }
     if (!out) {
       out = document.createElement('button');
       out.id = 'adminOut';
-      out.textContent = 'Déconnexion';
+      out.textContent = '(╯°□°)╯︵ ┻━┻';
       out.style.cssText = 'position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;z-index:5;font-size:14px;padding:6px 14px';
       out.onclick = () => firebase.auth().signOut().catch(e => uiAlert('Erreur : ' + e.message));
       document.getElementById('home').appendChild(out);
