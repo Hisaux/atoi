@@ -13,7 +13,7 @@
     --ink2:rgba(27,34,51,.6);
     --glass:rgba(255,255,255,.52);
     --edge:rgba(255,255,255,.85);
-    --sz:min(86vw,360px,40vh); /* côté du stage carré */
+    --sz:clamp(130px,calc(100vh - 480px),min(86vw,360px)); /* côté du stage carré : laisse la place aux éléments autour */
     --bg:radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),
          radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),
          radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),
@@ -23,10 +23,12 @@
   html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
     background:var(--bg);color:var(--ink);overflow:hidden;color-scheme:light}
 
+  @supports (height:100dvh){:root{--sz:clamp(130px,calc(100dvh - 480px),min(86vw,360px))}}
   .screen{display:none;position:fixed;inset:0;padding:max(22px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom));overflow-y:auto}
   .screen.on{display:flex;flex-direction:column}
   .wrap{width:100%;max-width:460px;margin:0 auto}
   #home .wrap{margin:0 auto}
+  #lobby,#who{padding-top:calc(max(22px,env(safe-area-inset-top)) + 34px)}   /* sous le bouton de déconnexion */
 
   /* ---------- Verre liquide ---------- */
   .glass{
@@ -61,7 +63,7 @@
   }
   input:focus,input:focus-visible{outline:none;box-shadow:none}
   input[type=text].bad{border-color:#d93025}
-  .h2row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+  .h2row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:0 0 12px}
   .h2row h2{margin:0}
   button.sm{font-size:13px;padding:6px 12px}
   input::placeholder{color:rgba(27,34,51,.4)}
@@ -69,6 +71,11 @@
   input[type=color]::-webkit-color-swatch-wrapper{padding:0}
   input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
   input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
+  input[type=color].bad{border:3px solid #d93025}
+  .swatches{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+  button.sw{width:34px;height:34px;flex:0 0 34px;padding:0;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+  button.sw.sel{box-shadow:0 0 0 3px var(--ink)}
+  button.sw.taken{opacity:.3}
 
   button{
     font:inherit;font-size:18px;font-weight:400;padding:12px 24px;border-radius:60px;cursor:pointer;
@@ -87,7 +94,7 @@
   }
   .row{display:flex;gap:10px;align-items:center;justify-content:center;margin:10px 0}
   .row>*{flex:1}
-  .row>button{flex:0 0 auto}
+  .row>button{flex:0 0 auto;max-width:100%}
 
   .err{color:#d93025;margin-top:10px;min-height:20px;font-size:15px}
   #nameErr{margin:0;line-height:20px;text-align:center}
@@ -103,7 +110,7 @@
   .pl .dot{width:30px;height:30px;border-radius:50%;flex:0 0 30px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22);
     display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;line-height:1}
   .pl .nm{flex:1;min-width:0;font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pl button{padding:8px 11px;font-size:16px;border-radius:14px}
+  .pl button{padding:8px 11px;font-size:16px;border-radius:14px;flex:0 0 auto}
   label.opt{display:flex;align-items:flex-start;gap:14px;padding:12px 4px;font-size:17px;font-weight:600;line-height:1.3;cursor:pointer}
   label.opt input{flex:0 0 26px;width:26px;height:26px;margin:-2px 0 0;accent-color:#2d69eb}
   label.opt small{font-weight:400;color:var(--ink2);font-size:14px}
@@ -112,7 +119,8 @@
   .npill{display:inline-block;max-width:100%;padding:5px 12px;border-radius:999px;font-size:14px;font-weight:700;line-height:1.2;
     border:1px solid rgba(255,255,255,.85);box-shadow:0 3px 10px rgba(40,60,110,.18),inset 0 1px 0 rgba(255,255,255,.5);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
-  .claimbtn{display:block;width:100%;margin:8px 0;padding:14px;font-size:19px;border-radius:20px;border:1px solid rgba(255,255,255,.7)}
+  .claimbtn{display:block;width:100%;margin:8px 0;padding:14px;font-size:19px;border-radius:20px;border:1px solid rgba(255,255,255,.7);overflow-wrap:anywhere}
+  .claimbtn.sel{box-shadow:0 0 0 3px var(--ink)}
   .claimbtn small{display:block;font-size:13px;opacity:.85}
   /* favoris : étoile à côté du prénom, autocomplétion du prénom */
   .pl button.star{background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0 6px;font-size:22px;line-height:1;color:#e0a800;vertical-align:-2px}
@@ -128,7 +136,7 @@
   /* écran de jeu */
   #game{padding:0}
   #gback{position:fixed;top:max(14px,env(safe-area-inset-top));left:14px;z-index:5}
-  #top{display:flex;flex-direction:column;align-items:center;gap:10px;padding:max(16px,env(safe-area-inset-top)) 14px 0;position:relative;z-index:4}
+  #top{display:flex;flex-direction:column;align-items:center;gap:6px;padding:calc(max(14px,env(safe-area-inset-top)) + 42px) 14px 0;position:relative;z-index:4}
   #strip{padding:9px 14px;gap:9px;flex-wrap:wrap;justify-content:center}
   #strip .chip{width:22px;height:22px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;line-height:1;transition:transform .2s,opacity .2s}
   #strip .chip.dim{opacity:.3}
@@ -138,10 +146,10 @@
   /* stage centré verticalement dans l'écran ; « en attente » est posé au-dessus sans le décaler */
   #main{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0}
   #wait{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(50% + var(--sz)/2 + 14px);
-    width:max-content;max-width:min(92vw,420px);text-align:center;justify-content:center;font-size:16px;font-weight:600;line-height:1.3;border-radius:22px}
-  #big.num{font-size:120px;line-height:1}
-  #big.msg{font-size:30px;line-height:1.15}
-  #big.clock{font-size:54px;line-height:1.1;font-variant-numeric:tabular-nums}
+    width:max-content;max-width:min(92vw,420px);text-align:center;justify-content:center;font-size:14px;padding:6px 12px;font-weight:600;line-height:1.3;border-radius:22px}
+  #big.num{font-size:clamp(60px,calc(var(--sz)*.45),120px);line-height:1}
+  #big.msg{font-size:clamp(20px,calc(var(--sz)/10),30px);line-height:1.15}
+  #big.clock{font-size:clamp(32px,calc(var(--sz)/6),54px);line-height:1.1;font-variant-numeric:tabular-nums}
   #pass{position:absolute;left:50%;top:calc(50% + var(--sz)/2 + 14px);transform:translateX(-50%);z-index:3;font-size:15px;padding:8px 18px;white-space:nowrap}
   /* le stage est un carré */
   #stage{width:var(--sz);aspect-ratio:1/1;padding:20px;
@@ -149,8 +157,8 @@
     transition:transform .12s}
   #stage.tap{cursor:pointer}
   #stage.tap:active{transform:scale(.985)}
-  #big{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.05;overflow-wrap:anywhere}
-  #sub{font-size:19px;margin-top:12px;color:inherit;opacity:.8;font-weight:500}
+  #big{font-size:clamp(26px,calc(var(--sz)/7),44px);font-weight:800;letter-spacing:-.02em;line-height:1.05;overflow-wrap:anywhere}
+  #sub{font-size:clamp(15px,calc(var(--sz)/16),19px);margin-top:10px;color:inherit;opacity:.8;font-weight:500}
   /* le nom est à mi-chemin entre le bas du stage et le bas de l'écran : 75% + (taille du stage)/4 */
   #foot{position:absolute;left:50%;top:calc(75% + var(--sz)/4);transform:translate(-50%,-50%);z-index:3;text-align:center}
   /* le nom prend la couleur du joueur, le texte s'adapte pour rester lisible */
@@ -166,8 +174,8 @@
   @keyframes ccw{to{transform:rotate(-360deg)}}
   #myname.shake{animation:shake .32s}
   @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  #tapc{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;font-size:20px;font-weight:700;pointer-events:none;
-    padding:8px 18px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #fff;box-shadow:0 6px 20px rgba(40,60,110,.18)}
+  #tapc{position:fixed;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));z-index:4;font-size:16px;font-weight:700;pointer-events:none;
+    padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid #fff;box-shadow:0 6px 20px rgba(40,60,110,.18)}
   #tapc:empty{display:none}
   #end{position:fixed;right:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
     font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:#d93025}
@@ -195,6 +203,11 @@
   .stt.ctr th,.stt.ctr td{text-align:center;vertical-align:middle;white-space:nowrap}
   .stt.ctr th:first-child,.stt.ctr td:first-child{text-align:left}
   .sh-game{font-size:32px;font-weight:800;text-align:center;letter-spacing:-.02em;line-height:1.1;word-break:break-word}
+  /* panneau de fin : défilement horizontal, première colonne (prénoms) figée */
+  .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tscroll .stt.ctr{border-collapse:separate;border-spacing:0}
+  .tscroll .stt.ctr th:first-child,.tscroll .stt.ctr td:first-child{position:sticky;left:0;z-index:2;background:#f7f9fd;box-shadow:2px 0 4px -2px rgba(27,34,51,.2)}
+  .tscroll .npill{max-width:120px}
   .dot2{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;border:1px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);vertical-align:-1px}
   #rwfx{position:fixed;z-index:50;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
     background:rgba(27,34,51,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;
@@ -245,13 +258,12 @@
     <!-- joueur : écran 1 -->
     <div class="glass card" id="pickCard" style="display:none">
       <h2>Choisir un joueur</h2>
-      <div class="hint" id="pickMe" style="margin:0 0 12px"></div>
+      <div id="pickList"></div>
       <div class="row"><button id="pickBtn" class="pri">Choisir mon prénom et ma couleur</button></div>
     </div>
 
     <div class="glass card" id="addCard">
       <h2 id="addTitle">Ajouter un joueur</h2>
-      <div id="claimBox"></div>
       <div class="row">
         <div class="acwrap">
           <input id="pname" type="text" placeholder="Prénom" maxlength="14" autocomplete="off">
@@ -259,11 +271,13 @@
         </div>
         <input id="pcolor" type="color" value="#e53935">
       </div>
+      <div class="swatches" id="swatches"></div>
+      <div class="row" style="margin:6px 0 0"><button id="moreColors" class="sm" type="button">Plus de couleurs</button></div>
       <div class="err" id="nameErr"></div>
       <div class="row"><button id="addP" class="pri">Ajouter</button><button id="addCancel" style="display:none">Annuler</button></div>
     </div>
 
-    <div class="row" id="optToggleRow" style="display:none"><button id="optToggle">Voir le mode de jeu et les options</button></div>
+    <div class="row" id="optToggleRow" style="display:none"><button id="optToggle" class="link" style="font-size:16px;text-decoration:underline">Voir le mode de jeu et les options</button></div>
 
     <div class="glass card" id="ordCard">
       <div class="h2row">
@@ -401,7 +415,8 @@ db.ref('.info/serverTimeOffset').on('value', s => { srvOff = s.val() || 0; });
 const nowS = () => Date.now() + srvOff;
 
 const LIGHT = 'radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),#eef2fa';
-const PALETTE = ['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1','#d81b60'];
+const PALETTE = ['#e53935','#fdd835','#fb8c00','#43a047','#4169e1','#8e24aa','#9e9e9e','#795548','#f06292','#4fc3f7','#111111','#ffffff'];
+const PALETTE_NAMES = ['Rouge','Jaune','Orange','Vert','Bleu royal','Violet','Gris','Marron','Rose','Bleu clair','Noir','Blanc'];
 /* ---------- Sons (Web Audio : aucun fichier) ---------- */
 let actx = null, sndOn = localStorage.getItem('tour_snd') !== '0';
 function unlockAudio(){
@@ -843,8 +858,8 @@ function render(){
 }
 
 /* ---------- Préparation ---------- */
-const HURRY_SEQ = 'Mode « Time out »<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
-const HURRY_SIM = 'Mode « Time out » au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
+const HURRY_SEQ = 'Mode Time out<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
+const HURRY_SIM = 'Mode Time out au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
 const ROUNDS_SEQ = 'Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu\'à ce que tout le monde ait passé.</small>';
 const ROUNDS_SIM = 'Jeu par manche<br><small>Les parties sont comptées en manches : une manche se termine quand tout le monde a fini.</small>';
 
@@ -885,34 +900,29 @@ function renderLobby(){
     star.textContent = isFav ? '★' : '☆';
     star.title = isFav ? 'Favori' : 'Ajouter aux favoris';
     star.onclick = () => toggleFav(p);
-    d.querySelector('.nm').appendChild(star);
+    d.append(star);
     if (adm && !started) d.append(up, dn);                               // seul l'admin change l'ordre
     if (!started && (adm || claims[i] === dev)) d.append(rm);            // un joueur ne retire que le sien
     box.append(d);
   });
 
-  // ----- interface joueur : « Choisir un joueur » / « Ajouter un joueur »
-  const meP = myI !== null ? list[myI] : null;
+  // ----- interface joueur : « Choisir un joueur » (clic = sélection) / « Ajouter un joueur »
   $('pickCard').style.display = canPick && !adding ? '' : 'none';
   $('addCard').style.display = adm ? (started ? 'none' : '') : (canPick && adding ? '' : 'none');
   $('addCancel').style.display = adm ? 'none' : '';
-  $('pickMe').innerHTML = meP ? 'Tu joues : ' + pill(meP) : 'Pas encore de joueur choisi.';
-  $('pickBtn').textContent = meP ? 'Changer de joueur' : 'Choisir mon prénom et ma couleur';
-  const cb = $('claimBox'); cb.innerHTML = '';
-  if (!adm && canPick && adding && list.length){
-    const t = document.createElement('div'); t.className = 'hint'; t.style.margin = '0 0 4px';
-    t.textContent = 'Je suis déjà dans la liste :'; cb.append(t);
+  $('ordCard').style.display = adm ? '' : 'none';
+  const pk = $('pickList'); pk.innerHTML = '';
+  if (canPick){
+    if (!list.length) pk.innerHTML = '<div class="hint" style="margin:0 0 12px">Aucun joueur pour l\'instant : ajoute le tien.</div>';
     list.forEach((p, i) => {
-      const taken = claims[i] != null && claims[i] !== dev;
-      const b = document.createElement('button'); b.className = 'claimbtn';
-      b.innerHTML = esc(p.name) + (taken ? '<small>déjà pris</small>' : (claims[i] === dev ? '<small>c\'est moi</small>' : ''));
+      const taken = claims[i] != null && claims[i] !== dev, mineSel = claims[i] === dev;
+      const b = document.createElement('button'); b.className = 'claimbtn' + (mineSel ? ' sel' : '');
+      b.innerHTML = '<span>' + esc(p.name) + '</span>' + (taken ? '<small>déjà pris</small>' : (mineSel ? '<small>c\'est moi</small>' : ''));
       b.disabled = taken;
       b.style.background = p.color; b.style.color = textOn(p.color);
-      b.onclick = () => { adding = false; claim(i); renderLobby(); };
-      cb.append(b);
+      b.onclick = () => claim(i);
+      pk.append(b);
     });
-    const t2 = document.createElement('div'); t2.className = 'hint'; t2.style.margin = '14px 0 12px';
-    t2.textContent = 'Sinon, ajoute ton prénom et ta couleur :'; cb.append(t2);
   }
 
   // ----- mode de jeu et options : modifiables par l'admin, consultables par les joueurs à la demande
@@ -955,7 +965,7 @@ function renderLobby(){
   $('cancelRow').style.display = started ? 'none' : '';
 
   // si la couleur proposée vient d'être prise (par moi ou un autre téléphone), on en propose une libre
-  if (list.some(p => String(p.color).toLowerCase() === $('pcolor').value.toLowerCase())) $('pcolor').value = freeColor();
+  syncColor();
 }
 
 // modifie la liste des joueurs AVANT le lancement : les choix de prénom (claims) suivent les joueurs
@@ -1015,6 +1025,7 @@ function addPlayer(){
   const name = $('pname').value.trim(), color = $('pcolor').value.toLowerCase();
   if (!name){ $('pname').classList.add('bad'); return; }     // prénom vide : bordure rouge, sans texte
   hideSugg();
+  if (colorTaken(color)){ nameErr(''); $('pcolor').classList.add('bad'); return; }   // couleur prise : rond rouge, sans texte
   const mode = modeOf();
   let reason = '';
   // transaction : pas de doublon même si deux téléphones ajoutent en même temps
@@ -1029,10 +1040,14 @@ function addPlayer(){
     return a;
   }, (err, committed, snap) => {
     if (err){ nameErr(err.code === 'PERMISSION_DENIED' || /permission/i.test(err.message) ? "Seul l'administrateur peut créer une partie." : 'Erreur : ' + err.message); return; }
-    if (!committed){ nameErr(reason || 'Impossible d\'ajouter ce joueur.'); return; }
+    if (!committed){
+      if (reason === 'Cette couleur est déjà prise.'){ nameErr(''); $('pcolor').classList.add('bad'); }
+      else nameErr(reason || 'Impossible d\'ajouter ce joueur.');
+      return;
+    }
     nameErr('');
     $('pname').value = '';
-    $('pcolor').value = freeColor();
+    $('pcolor').value = freeColor(); syncColor();
     if (!isAdmin()){
       const arr = snap && snap.val(), idx = Array.isArray(arr) ? arr.findIndex(x => x && norm(x.name) === norm(name)) : -1;
       adding = false;
@@ -1048,7 +1063,7 @@ $('pname').addEventListener('keydown', e => {
     e.preventDefault();
     const n = suggList.length;
     suggIdx = e.key === 'ArrowDown' ? (suggIdx + 1) % n : (suggIdx <= 0 ? n - 1 : suggIdx - 1);
-    markSugg();
+    markSugg(true);
     return;
   }
   if (e.key === 'Escape' && open){ e.preventDefault(); hideSugg(); return; }
@@ -1059,23 +1074,42 @@ $('pname').addEventListener('keydown', e => {
   }
 });
 $('pname').addEventListener('input', () => { nameErr(''); $('pname').classList.remove('bad'); showSugg(); });
-$('pcolor').addEventListener('input', () => nameErr(''));
+$('pcolor').addEventListener('input', () => { nameErr(''); syncColor(); });
+$('moreColors').onclick = () => {
+  const c = $('pcolor');
+  try { if (c.showPicker) c.showPicker(); else c.click(); } catch (e) { c.click(); }
+};
+function colorTaken(c){ return players().some(p => String(p.color).toLowerCase() === String(c).toLowerCase()); }
+// rond de couleur : bordure rouge si la couleur est déjà prise ; pastilles de la palette (prises = estompées)
+function syncColor(){
+  const v = $('pcolor').value.toLowerCase();
+  $('pcolor').classList.toggle('bad', colorTaken(v));
+  const box = $('swatches'); box.innerHTML = '';
+  PALETTE.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sw' + (c === v ? ' sel' : '') + (colorTaken(c) ? ' taken' : '');
+    b.style.background = c; b.title = PALETTE_NAMES[i];
+    b.onclick = () => { $('pcolor').value = c; nameErr(''); syncColor(); };
+    box.append(b);
+  });
+}
 
 /* ---------- Autocomplétion du prénom (favoris), à partir de 2 lettres ---------- */
 let suggList = [], suggIdx = -1;
 function hideSugg(){ suggList = []; suggIdx = -1; $('sugg').classList.remove('on'); $('sugg').innerHTML = ''; }
-function markSugg(){
+function markSugg(scroll){
   const kids = [...$('sugg').children];
   kids.forEach((b, i) => b.classList.toggle('act', i === suggIdx));
   const a = kids[suggIdx];
-  if (a && a.scrollIntoView) a.scrollIntoView({block: 'nearest'});
+  if (scroll && a && a.scrollIntoView) a.scrollIntoView({block: 'nearest'});
 }
 function pickSugg(f){
   $('pname').value = f.name;
   const used = players().some(p => String(p.color).toLowerCase() === String(f.color).toLowerCase());
   $('pcolor').value = used ? freeColor() : f.color;      // sa couleur favorite, sauf si elle est déjà prise
   $('pname').classList.remove('bad');
-  hideSugg(); nameErr('');
+  hideSugg(); nameErr(''); syncColor();
 }
 function showSugg(){
   const v = norm($('pname').value);
@@ -1083,7 +1117,7 @@ function showSugg(){
   const taken = players().map(p => norm(p.name));
   const m = Object.keys(favs).map(k => favs[k]).filter(f => f && f.name && norm(f.name).startsWith(v) && !taken.includes(norm(f.name))).slice(0, 5);
   if (!m.length){ hideSugg(); return; }
-  suggList = m; suggIdx = -1;
+  suggList = m; suggIdx = 0;      // 1er choix présélectionné : Entrée le valide en priorité
   const box = $('sugg'); box.innerHTML = '';
   m.forEach(f => {
     const b = document.createElement('button');
@@ -1092,6 +1126,7 @@ function showSugg(){
     box.append(b);
   });
   box.classList.add('on');
+  markSugg(false);
 }
 $('pname').addEventListener('blur', () => setTimeout(hideSugg, 150));
 
@@ -1203,6 +1238,7 @@ function renderGame(){
   iAmActive = mine && !isSolo;
   const act = list[cur];
   $('gback').style.display = waiting ? '' : 'none';
+  $('end').style.display = isAdmin() ? '' : 'none';      // seul l'admin termine la partie
   $('foot').style.display = isSolo ? 'none' : '';
   const wt = $('wait');
   if (waiting){
@@ -1434,7 +1470,7 @@ $('turnno').onclick = () => {
 
 /* ---------- Terminer la partie : statistiques pour tous, puis retour à l'accueil ---------- */
 $('end').onclick = async () => {
-  if (!ref) return;
+  if (!ref || !isAdmin()) return;
   if (!await uiConfirm('Terminer la partie pour tous les joueurs ?', 'Terminer')) return;
   // classement et points (facultatifs)
   const list = players(), two = list.length > 1;
@@ -1547,8 +1583,8 @@ function showStats(v){
   const html = '<div class="sh-title">Fin de la partie</div>' +
     (v.name ? `<div class="sh-game">${esc(v.name)}</div>` + (v.ext ? '<div class="sh-sub">avec extension</div>' : '') : '') +
     `<div class="sh-sub">Durée totale ${fmt(totalMs(v))}${mode === 'solo' ? '' : ' · ' + nb + ' ' + unit}</div>` +
-    '<table class="stt ctr"><thead><tr><th>Joueur</th>' + (rkm ? '<th>Rang</th>' : '') + (ptm ? '<th>Points</th>' : '') + '<th>Temps</th>' +
-    (showHurry ? '<th>Time out</th>' : '') + (showRw ? '<th>Rewind</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    '<div class="tscroll"><table class="stt ctr"><thead><tr><th>Joueur</th>' + (rkm ? '<th>Rang</th>' : '') + (ptm ? '<th>Points</th>' : '') + '<th>Temps</th>' +
+    (showHurry ? '<th>Time out</th>' : '') + (showRw ? '<th>Rewind</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   setSheet(html, 'Fermer', () => leaveGame(), false);
 }
 
