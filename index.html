@@ -13,7 +13,7 @@
     --ink2:rgba(27,34,51,.6);
     --glass:rgba(255,255,255,.52);
     --edge:rgba(255,255,255,.85);
-    --sz:clamp(130px,calc(100vh - 480px),min(86vw,360px)); /* côté du stage carré : laisse la place aux éléments autour */
+    --sz:clamp(130px,calc(100vh - 520px),min(86vw,360px)); /* côté du stage carré : laisse la place aux éléments autour */
     --bg:radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),
          radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),
          radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),
@@ -23,7 +23,7 @@
   html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
     background:var(--bg);color:var(--ink);overflow:hidden;color-scheme:light}
 
-  @supports (height:100dvh){:root{--sz:clamp(130px,calc(100dvh - 480px),min(86vw,360px))}}
+  @supports (height:100dvh){:root{--sz:clamp(130px,calc(100dvh - 520px),min(86vw,360px))}}
   .screen{display:none;position:fixed;inset:0;padding:max(22px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom));overflow-y:auto}
   .screen.on{display:flex;flex-direction:column}
   .wrap{width:100%;max-width:460px;margin:0 auto}
@@ -72,10 +72,12 @@
   input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
   input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
   input[type=color].bad{border:3px solid #d93025}
-  .swatches{display:grid;grid-template-columns:repeat(7,1fr);gap:10px 6px;justify-items:center;margin:14px 0 4px}   /* deux lignes, ordre arc-en-ciel */
+  .colrow{display:flex;align-items:center;gap:10px;margin:14px 0 4px}     /* pastilles à gauche, « + » aligné sous le rond pcolor */
+  .swatches{flex:1;min-width:0;display:grid;grid-template-columns:repeat(6,1fr);gap:10px 6px;justify-items:center}   /* deux lignes de 6, ordre arc-en-ciel */
   button.sw{width:100%;max-width:38px;aspect-ratio:1/1;padding:0;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
-  button.sw.more{background:conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#4fc3f7,#4169e1,#8e24aa,#f06292,#e53935);
-    color:#fff;font-size:24px;font-weight:700;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+  button.more{flex:0 0 54px;width:54px;height:54px;padding:0;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22);
+    background:conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#4fc3f7,#4169e1,#8e24aa,#f06292,#e53935);
+    color:#fff;font-size:32px;font-weight:700;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
   button.sw.sel{box-shadow:0 0 0 3px var(--ink)}
   button.sw.taken{opacity:.3}
 
@@ -145,6 +147,13 @@
   #strip .chip.dim{opacity:.3}
   #strip .chip.act{transform:scale(1.3);box-shadow:0 0 0 3px rgba(27,34,51,.85)}
   #turnno{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px;cursor:pointer}
+  #cd{font-size:14px;font-weight:700;color:var(--ink);padding:6px 14px;text-align:center;font-variant-numeric:tabular-nums;max-width:92vw;line-height:1.3}
+  #cd.low{color:#d93025}
+  .cdrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:2px 4px 10px 44px;font-size:16px;font-weight:600}
+  .cdrow input{width:84px;padding:8px 6px;font:inherit;font-size:16px;text-align:center;border-radius:8px;border:1px solid lightgray;background:rgba(255,255,255,.7);color:var(--ink)}
+  .cdrow input:focus{outline:none}
+  .pl .tag{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--ink2);padding:3px 8px;border-radius:999px;background:rgba(27,34,51,.08)}
+  .claimbtn:disabled{opacity:.4;filter:grayscale(.6)}
   #timer{font-size:14px;font-weight:600;color:var(--ink2);padding:6px 14px;font-variant-numeric:tabular-nums}
   /* stage centré verticalement dans l'écran ; « en attente » est posé au-dessus sans le décaler */
   #main{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0}
@@ -194,6 +203,7 @@
   #mtext{font-size:17px;line-height:1.4;white-space:pre-line;word-break:break-word;margin-bottom:20px}
   .mbtns{display:flex;gap:10px;justify-content:center}
   .mbtns button{flex:1;padding:12px 16px}
+  .sbox .mbtns button{flex:0 0 auto}      /* boutons des fiches : largeur du texte */
   #sheet{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:20px;
     background:rgba(27,34,51,.4);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
   #sheet.on{display:flex}
@@ -230,6 +240,11 @@
   /* clignotements : la couleur du joueur alterne avec une version pâle */
   .flash{animation:blink 1s steps(1) 3}
   @keyframes blink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
+  /* couleur très claire (blanc) : on alterne avec un gris clair, la version « pâle » ne se verrait pas */
+  .lt.flash{animation-name:blinkL}
+  .lt.slow,.lt.fast{animation-name:alarmL}
+  @keyframes blinkL{0%{filter:none}50%{filter:brightness(.8)}100%{filter:none}}
+  @keyframes alarmL{0%{filter:none}50%{filter:brightness(.8)}100%{filter:none}}
   .slow{animation:alarmblink 1s steps(1) infinite}
   .fast{animation:alarmblink .4s steps(1) infinite}
   @keyframes alarmblink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
@@ -276,9 +291,9 @@
         </div>
         <input id="pcolor" type="color" value="#e53935">
       </div>
-      <div class="swatches" id="swatches"></div>
+      <div class="colrow"><div class="swatches" id="swatches"></div><button id="moreColors" class="more" type="button" title="Plus de couleurs">+</button></div>
       <div class="err" id="nameErr"></div>
-      <div class="row btns2"><button id="addCancel" style="display:none">Annuler</button><button id="addP" class="pri">Ajouter</button></div>
+      <div class="row"><button id="addCancel" style="display:none">Annuler</button><button id="addP" class="pri">Ajouter</button></div>
     </div>
 
     <div class="row" id="optToggleRow" style="display:none"><button id="optToggle" class="link" style="font-size:16px;text-decoration:underline">Voir le mode de jeu et les options</button></div>
@@ -306,6 +321,9 @@
 
       <label class="opt" id="lblRewind"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
       <label class="opt" id="lblHurry"><input type="checkbox" id="optHurry"><span id="hurryTxt"></span></label>
+      <label class="opt" id="lblCd"><input type="checkbox" id="optCd"><span>Compte à rebours<br><small>Chaque tour dure un temps limité (durée ci-dessous) ; quand il est écoulé, le tour est passé. Fonctionne dans tous les modes de jeu.</small></span></label>
+      <label class="opt" id="lblCdm"><input type="checkbox" id="optCdm"><span>Compte à rebours à lancement manuel<br><small>Simultané uniquement : le 1<sup>er</sup> joueur qui touche son écran lance le compte à rebours pour tous les autres. Incompatible avec Time out au dernier joueur.</small></span></label>
+      <div class="cdrow" id="cdRow" style="display:none">Durée <input id="cdSecs" type="number" inputmode="numeric" min="5" max="3600" step="5" value="60"> secondes</div>
     </div>
 
     <div class="row btns2" id="actRow" style="margin-top:16px"><button id="cancelLobby">Annuler</button><button id="start" class="pri" disabled>Rejoindre</button></div>
@@ -329,6 +347,7 @@
     <div id="strip" class="pill"></div>
     <div id="turnno" class="pill"></div>
     <div id="timer" class="pill"></div>
+    <div id="cd" class="pill" style="display:none"></div>
   </div>
   <div id="main">
     <div id="wait" class="pill" style="display:none"></div>
@@ -516,6 +535,10 @@ function rgba(hex, a){
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
 }
+function isLight(hex){
+  const n = parseInt(hex.slice(1), 16);
+  return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) > 225;
+}
 function textOn(hex){
   const n = parseInt(hex.slice(1), 16), r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
   return (0.299*r + 0.587*gg + 0.114*b) > 150 ? '#111' : '#fff';
@@ -631,6 +654,7 @@ function advance(cur, kind, now){
     if (o.rounds && next <= c) cur.cycle = (cur.cycle || 1) + 1;
     cur.current = next;
   }
+  cur.ts = now;                                              // le compte à rebours repart
   applyTiming(cur, now);
 }
 
@@ -641,14 +665,20 @@ function finishSim(cur, i, now){
   cur.alarm = null; cur.hurry = null;
   const left = [];
   for (let k = 0; k < n; k++) if (!cur.done[k]) left.push(k);
+  const o = cur.options || {};
   if (!left.length){
-    cur.round = (cur.round || 1) + 1; cur.turn = (cur.turn || 1) + 1; cur.done = null;
-    if (cur.options && cur.options.rotate) cur.reorder = {round: cur.round};   // nouvelle manche
-  } else if (left.length === 1 && cur.options && cur.options.hurry){
-    // « plus vite » automatique sur le dernier joueur
-    cur.alarm = {player: left[0], turn: cur.turn, until: now + 30000};
-    cur.st = cur.st || {}; cur.st.hurry = cur.st.hurry || {};
-    cur.st.hurry[left[0]] = (cur.st.hurry[left[0]] || 0) + 1;
+    cur.round = (cur.round || 1) + 1; cur.turn = (cur.turn || 1) + 1; cur.done = null;   // nouvelle manche
+    cur.ts = now; cur.cdm = null;                            // le compte à rebours repart
+    if (o.rotate) cur.reorder = {round: cur.round};
+  } else {
+    // compte à rebours manuel : le 1er joueur qui a fini le lance pour tous les autres
+    if (o.cdm && !cur.cdm) cur.cdm = {t: now};
+    if (left.length === 1 && o.hurry && !o.cdm){
+      // « Time out » automatique sur le dernier joueur
+      cur.alarm = {player: left[0], turn: cur.turn, until: now + 30000};
+      cur.st = cur.st || {}; cur.st.hurry = cur.st.hurry || {};
+      cur.st.hurry[left[0]] = (cur.st.hurry[left[0]] || 0) + 1;
+    }
   }
   applyTiming(cur, now);
 }
@@ -667,6 +697,7 @@ function applyReorder(cur, perm, now){
   tm.acc = remapMap(tm.acc, perm) || {}; tm.run = remapMap(tm.run, perm) || {};
   if (cur.st) cur.st.hurry = remapMap(cur.st.hurry, perm);
   cur.current = 0; cur.reorder = null; cur.log = null; cur.passed = null; cur.alarm = null; cur.skipped = null;
+  cur.ts = now; cur.cdm = null;
   applyTiming(cur, now);
 }
 
@@ -731,7 +762,7 @@ function join(c){
       if (tx && tx !== lastTo){
         lastTo = tx;
         const by = v.toFx.by, pl = (v.players || [])[by];
-        playTimeout(pl ? pl.name : '', (v.claims || {})[by] === dev, modeOf(v) === 'sim');
+        playTimeout(pl ? pl.name : '', (v.claims || {})[by] === dev, modeOf(v) === 'sim', !!v.toFx.all);
       }
     }
     g = v;
@@ -775,8 +806,8 @@ function playRewind(name){
   fxTimer = setTimeout(() => $('rwfx').classList.remove('on'), 3000);      // animation : 3 secondes
 }
 // Time out : fond noir, texte blanc et sablier pendant 3 secondes, sur tous les écrans
-function playTimeout(name, mine, sim){
-  $('totxt').textContent = sim
+function playTimeout(name, mine, sim, all){
+  $('totxt').textContent = all ? 'Temps écoulé' : sim
     ? (mine ? 'Ta partie est terminée' : 'La partie de ' + name + ' est terminée')
     : (mine ? 'Ton tour est passé' : 'Le tour de ' + name + ' est passé');
   $('tofx').classList.add('on');
@@ -910,7 +941,7 @@ function render(){
 
 /* ---------- Préparation ---------- */
 const HURRY_SEQ = 'Time out<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
-const HURRY_SIM = 'Time out au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
+const HURRY_SIM = 'Time out au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis le tour se termine.</small>';
 const ROUNDS_SEQ = 'Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu\'à ce que tout le monde ait passé.</small>';
 const ROUNDS_SIM = 'Jeu par manche<br><small>Les parties sont comptées en manches : une manche se termine quand tout le monde a fini.</small>';
 
@@ -938,7 +969,8 @@ function renderLobby(){
   }
   list.forEach((p, i) => {
     const d = document.createElement('div'); d.className = 'pl';
-    d.innerHTML = dotHtml(p, i === 0 && showFirst) + `<div class="nm">${i+1}. ${esc(p.name)}</div>`;
+    d.innerHTML = dotHtml(p, i === 0 && showFirst) + `<div class="nm">${i+1}. ${esc(p.name)}</div>` +
+      (adm && !started && claims[i] != null ? '<span class="tag">pris</span>' : '');
     const up = document.createElement('button'); up.textContent = '↑'; up.disabled = i === 0;
     up.onclick = () => move(i, -1, p.name);
     const dn = document.createElement('button'); dn.textContent = '↓'; dn.disabled = i === list.length - 1;
@@ -987,13 +1019,18 @@ function renderLobby(){
   $('optRewind').checked = !!o.rewind;
   $('optRounds').checked = !!o.rounds;
   $('optRotate').checked = !!o.rotate;
-  ['optHurry', 'optRewind', 'optRounds', 'optRotate'].forEach(id => { $(id).disabled = !adm || started; });
+  $('optCd').checked = !!o.cd;
+  $('optCdm').checked = !!o.cdm;
+  if (document.activeElement !== $('cdSecs')) $('cdSecs').value = o.cdSecs || 60;
+  ['optHurry', 'optRewind', 'optRounds', 'optRotate', 'optCd', 'optCdm', 'cdSecs'].forEach(id => { $(id).disabled = !adm || started; });
+  $('lblCdm').style.display = sim ? '' : 'none';                       // lancement manuel : simultané uniquement
+  $('cdRow').style.display = (o.cd || (sim && o.cdm)) ? '' : 'none';
   $('lblRewind').style.display = seqIa ? '' : 'none';
   $('lblHurry').style.display = (mode === 'seq' || sim) ? '' : 'none';
   $('lblRounds').style.display = (seqIa || sim) ? '' : 'none';      // « par manche » et « changement de 1er joueur » aussi en simultané
   $('lblRotate').style.display = (seqIa || sim) ? '' : 'none';
   $('roundsTxt').innerHTML = sim ? ROUNDS_SIM : ROUNDS_SEQ;
-  $('optCard').style.display = (mode === 'solo' || !seeOpts) ? 'none' : '';
+  $('optCard').style.display = !seeOpts ? 'none' : '';
   $('hurryTxt').innerHTML = sim ? HURRY_SIM : HURRY_SEQ;
   $('rand').style.display = adm && !started && (mode === 'seq' || (sim && !!o.rotate)) ? '' : 'none';
   $('rand').disabled = list.length < 2;
@@ -1067,7 +1104,18 @@ $('cancelLobby').onclick = async () => {
 document.querySelectorAll('input[name=mode]').forEach(r => {
   r.onchange = e => { if (isAdmin() && e.target.checked) ref.child('options/mode').set(e.target.value); };
 });
-$('optHurry').onchange = e => { if (isAdmin()) ref.child('options/hurry').set(e.target.checked); };
+// « Time out au dernier joueur » et « compte à rebours manuel » s'excluent ; les deux modes de compte à rebours aussi
+$('optHurry').onchange = e => { if (isAdmin()) ref.child('options').update(e.target.checked ? {hurry: true, cdm: false} : {hurry: false}); };
+$('optCd').onchange = e => { if (isAdmin()) ref.child('options').update(e.target.checked ? {cd: true, cdm: false} : {cd: false}); };
+$('optCdm').onchange = e => { if (isAdmin()) ref.child('options').update(e.target.checked ? {cdm: true, cd: false, hurry: false} : {cdm: false}); };
+$('cdSecs').onchange = e => {
+  if (!isAdmin()) return;
+  let v = Math.round(+e.target.value);
+  if (!(v >= 5)) v = 60;
+  if (v > 3600) v = 3600;
+  e.target.value = v;
+  ref.child('options/cdSecs').set(v);
+};
 $('optRewind').onchange = e => { if (isAdmin()) ref.child('options/rewind').set(e.target.checked); };
 $('optRounds').onchange = e => { if (isAdmin()) ref.child('options/rounds').set(e.target.checked); };
 $('optRotate').onchange = e => { if (isAdmin()) ref.child('options/rotate').set(e.target.checked); };
@@ -1127,6 +1175,10 @@ $('pname').addEventListener('keydown', e => {
 });
 $('pname').addEventListener('input', () => { nameErr(''); $('pname').classList.remove('bad'); showSugg(); });
 $('pcolor').addEventListener('input', () => { nameErr(''); syncColor(); });
+$('moreColors').onclick = () => {
+  const c = $('pcolor');
+  try { if (c.showPicker) c.showPicker(); else c.click(); } catch (e) { c.click(); }
+};
 function colorTaken(c){ return players().some(p => String(p.color).toLowerCase() === String(c).toLowerCase()); }
 // rond de couleur : bordure rouge si la couleur est déjà prise ; pastilles de la palette (prises = estompées)
 function syncColor(){
@@ -1141,14 +1193,6 @@ function syncColor(){
     b.onclick = () => { $('pcolor').value = c; nameErr(''); syncColor(); };
     box.append(b);
   });
-  // « Plus de couleurs » : ouvre le sélecteur du téléphone
-  const more = document.createElement('button');
-  more.type = 'button'; more.className = 'sw more'; more.title = 'Plus de couleurs'; more.textContent = '+';
-  more.onclick = () => {
-    const c = $('pcolor');
-    try { if (c.showPicker) c.showPicker(); else c.click(); } catch (e) { c.click(); }
-  };
-  box.append(more);
 }
 
 /* ---------- Autocomplétion du prénom (favoris), à partir de 2 lettres ---------- */
@@ -1204,6 +1248,7 @@ function launch(){
     cur.started = true; cur.current = 0; cur.turn = 1; cur.round = 1; cur.cycle = 1;
     cur.log = null; cur.passed = null; cur.done = null; cur.st = null; cur.reorder = null; cur.alarm = null; cur.hurry = null; cur.skipped = null;
     cur.tm = {acc: {}, run: {}, totAcc: 0};
+    cur.ts = nowS(); cur.cdm = null;
     if (mode === 'solo' || mode === 'ia'){
       cur.claims = {}; pl.forEach((p, i) => { cur.claims[i] = dev; });   // ce téléphone joue tous les joueurs
       cur.go = true;
@@ -1243,7 +1288,7 @@ function checkGo(){
     let k = 0;
     for (let i = 0; i < n; i++) if (c[i] != null) k++;
     if (k < n) return;
-    cur.go = true;
+    cur.go = true; cur.ts = nowS();                          // la partie démarre : le compte à rebours aussi
     applyTiming(cur, nowS());
     return cur;
   });
@@ -1266,8 +1311,32 @@ function renderWho(){
 }
 
 /* ---------- Jeu ---------- */
+// compte à rebours : {until} = échéance ; {pending} = en attente du lancement manuel
+function cdSecs(v){ const x = +(v.options && v.options.cdSecs); return x >= 5 ? x : 60; }
+function cdInfo(v){
+  if (!v || !v.started || !v.go || v.reorder || v.ended) return null;
+  const o = v.options || {};
+  if (o.cd && v.ts) return {until: v.ts + cdSecs(v) * 1000};
+  if (o.cdm && modeOf(v) === 'sim'){
+    if (v.cdm && v.cdm.t) return {until: v.cdm.t + cdSecs(v) * 1000};
+    return {pending: cdSecs(v)};
+  }
+  return null;
+}
+function renderCd(){
+  const el = $('cd');
+  const c = (g && g.started && !waiting) ? cdInfo(g) : null;
+  if (!c){ el.style.display = 'none'; return; }
+  el.style.display = '';
+  if (c.pending){ el.innerHTML = 'Compte à rebours de ' + c.pending + ' s dès que le 1<sup>er</sup> joueur a fini'; el.classList.remove('low'); return; }
+  const rem = Math.max(0, c.until - nowS());
+  el.textContent = 'Compte à rebours ' + fmt(rem + 999);
+  el.classList.toggle('low', rem <= 10000);
+}
+
 function renderTimers(){
   if (!g || !g.started || meIdx === null) return;
+  renderCd();
   const mode = modeOf(), list = players();
   if (mode === 'solo'){
     $('timer').style.display = 'none';
@@ -1352,6 +1421,7 @@ function renderGame(){
     gs.dataset.blink = m;
   };
 
+  gs.classList.toggle('lt', isLight(me.color));       // couleur claire : clignote blanc / gris clair
   if (isSolo){
     setBlink('');
     gs.style.background = `radial-gradient(70% 42% at 50% 30%,${rgba(me.color, .55)},transparent 72%),${LIGHT}`;
@@ -1692,6 +1762,7 @@ function doRewind(){
     } else if (!o.rotate) cur.round = Math.floor((cur.turn - 1) / n) + 1;
     cur.alarm = null; cur.hurry = null; cur.skipped = null;
     cur.rw = cur.rw || {}; cur.rw[me] = true;
+    cur.ts = nowS();
     cur.rwFx = {id: Date.now() + '-' + me, by: me};            // déclenche l'animation sur tous les écrans
     applyTiming(cur, nowS());
     return cur;
@@ -1758,6 +1829,36 @@ function sendHurry(){
   });
 }
 
+// Fin du compte à rebours : n'importe quel téléphone applique le time out (la transaction évite les doublons)
+let cdExp = null;
+function expireCountdown(until){
+  if (cdExp === until) return;
+  cdExp = until;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    const c = cdInfo(cur);
+    if (!c || !c.until || nowS() < c.until - 1000) return;
+    const now = nowS(), mode = modeOf(cur), n = cur.players.length;
+    let pen = cur.current % n, all = false;
+    if (mode === 'sim'){
+      // simultané : tous ceux qui n'ont pas fini sont terminés d'office
+      const o = cur.options, h = o.hurry; o.hurry = false;
+      const left = [];
+      for (let k = 0; k < n; k++) if (!(cur.done && cur.done[k])) left.push(k);
+      left.forEach(k => finishSim(cur, k, now));
+      if (h === undefined) delete o.hurry; else o.hurry = h;
+      pen = left.length ? left[0] : 0; all = true;
+    } else if (mode === 'solo'){
+      cur.ts = now; cur.cdm = null; pen = 0; all = true;           // un seul joueur : le compte à rebours repart
+    } else {
+      advance(cur, 'skip', now);                                   // le tour est passé
+      cur.skipped = {player: pen, turn: cur.turn, until: now + 4000};
+    }
+    cur.toFx = {id: now + '-' + pen, by: pen, all: all};
+    return cur;
+  }, (err, ok) => { if (!ok) setTimeout(() => { if (cdExp === until) cdExp = null; }, 1500); });
+}
+
 // Fin de l'alarme : n'importe quel téléphone peut passer le tour (la transaction évite les doublons)
 function expireAlarm(){
   const al = g && g.alarm;
@@ -1779,6 +1880,8 @@ setInterval(() => {
   const sk = g.skipped;
   const skActive = sk && sk.turn === g.turn && nowS() < sk.until + 600;
   if (g.alarm && nowS() >= g.alarm.until) expireAlarm();
+  const cdc = cdInfo(g);
+  if (cdc && cdc.until && nowS() >= cdc.until) expireCountdown(cdc.until);
   if (!$('game').classList.contains('on')) return;
   if (g.alarm || skActive) renderGame();   // compte à rebours et message « tour passé »
   else renderTimers();                     // chronos en direct
