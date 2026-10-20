@@ -248,6 +248,14 @@
   .slow{animation:alarmblink 1s steps(1) infinite}
   .fast{animation:alarmblink .4s steps(1) infinite}
   @keyframes alarmblink{0%{filter:none}50%{filter:brightness(1.8) saturate(.35)}100%{filter:none}}
+  /* recherche Myludo : résultats et extensions */
+  .mlres{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto}
+  .mlres button.mlit{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:8px 12px;border-radius:16px;font-size:16px}
+  .mlres img{width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fff;flex:0 0 48px}
+  .mlres .mlt{flex:1;min-width:0;font-weight:600;line-height:1.25;overflow-wrap:anywhere}
+  .mlres .mlt small{display:block;font-weight:400;color:var(--ink2);font-size:13px}
+  .mlres label.opt{padding:8px 4px;align-items:center}
+  .mlres label.opt input{margin:0}
 </style>
 </head>
 <body>
@@ -262,7 +270,10 @@
         <input id="code" type="text" placeholder="ex. Catan" autocomplete="off">
         <div id="gsugg" class="sugg"></div>
       </div>
+      <div class="row" id="mlRow" style="display:none;margin:12px 0 0;justify-content:flex-start"><button id="mlSearch" type="button" class="sm">Chercher sur Myludo</button></div>
+      <div class="hint" id="mlPick" style="display:none"></div>
       <label class="opt" style="padding:12px 0 0;font-weight:500"><input type="checkbox" id="gext"><span>avec extension</span></label>
+      <div class="row" id="extRow" style="display:none;margin:0;padding-left:40px"><span class="hint" id="extSum" style="margin:0;flex:1;text-align:left"></span><button id="extEdit" type="button" class="link">Modifier</button></div>
       <div class="row" style="margin-top:16px"><button id="go" class="pri" disabled>En attente</button></div>
       <div class="err" id="homeErr"></div>
     </div>
@@ -424,6 +435,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const $ = id => document.getElementById(id);
+
+/* ============ À REMPLIR : adresse du relais Myludo (Cloudflare Worker) ============ */
+const MYLUDO_RELAY = 'https://myludo-relay.hisaux.workers.dev';     // ex. 'https://myludo-relay.moncompte.workers.dev'
+/* ================================================================================== */
+let mlGame = null, mlExts = [], mlLabel = '';   // fiche Myludo choisie, extensions validées, texte du champ au moment du choix
 
 // identifiant propre à ce téléphone : sert à retrouver quel joueur j'ai choisi
 let dev = localStorage.getItem('tour_dev');
@@ -732,11 +748,12 @@ function join(c){
         if (!creating){
           creating = true;
           const ext = !!$('gext').checked, key = code;
-          ref.update({name: gameName, ext: ext, current: 0, turn: 1, round: 1, started: false, options: {rewind: true, hurry: true, mode: 'seq'}})
+          const mg = mlGame ? mlItem(mlGame) : null, mx = ext ? mlExts.map(mlItem) : [];
+          ref.update({name: gameName, ext: ext, myludo: mg, exts: mx.length ? mx : null, current: 0, turn: 1, round: 1, started: false, options: {rewind: true, hurry: true, mode: 'seq'}})
             .then(() => {
               db.ref('lobby').set({code: key, name: gameName, ext: ext, t: firebase.database.ServerValue.TIMESTAMP}).catch(() => {});
               // le nom du jeu est mémorisé (autocomplétion quand on rejoue)
-              db.ref('catalog/' + key).transaction(x => { x = x || {plays: 0}; x.name = gameName; x.ext = ext; x.plays = (x.plays || 0) + 1; return x; }).catch(() => {});
+              db.ref('catalog/' + key).transaction(x => { x = x || {plays: 0}; x.name = gameName; x.ext = ext; x.plays = (x.plays || 0) + 1; if (mg) x.myludo = mg; if (mx.length) x.exts = mx; return x; }).catch(() => {});
             })
             .catch(e => { const m = e.message; leaveGame(); $('homeErr').textContent = 'Erreur : ' + m; });
         }
@@ -779,6 +796,7 @@ let adding = false, optsShown = false, lastTo = null, toTimer = null, alarmSnd =
 function updateHome(){
   const b = $('go');
   $('gext').disabled = !isAdmin();                 // seul l'admin choisit « avec extension »
+  syncMl();
   if (isAdmin()){ b.textContent = 'Créer la table'; b.disabled = false; }
   else if (tableExists){ b.textContent = 'Rejoindre'; b.disabled = false; }
   else { b.textContent = 'En attente'; b.disabled = true; }
@@ -841,6 +859,7 @@ function leaveGame(){
   disarm();
   localStorage.removeItem('tour_code');
   $('code').value = ''; $('gext').checked = false;
+  mlGame = null; mlExts = []; mlLabel = '';
   show('home');
   updateHome();
 }
@@ -871,6 +890,164 @@ function toggleFav(p){
   }
 }
 $('go').onclick = () => join($('code').value);
+
+/* ---------- Recherche Myludo (jeux de base, puis extensions) via le relais ---------- */
+// fiche réduite à ce qu'on enregistre en base (aucune valeur « undefined » : Firebase la refuse)
+function mlItem(x){
+  x = x || {};
+  return {id: String(x.id || ''), title: String(x.title || ''), subtitle: String(x.subtitle || ''),
+          edition: Number(x.edition) || 0, image: typeof x.image === 'string' ? x.image : ''};
+}
+// nom court d'une extension : on retire le nom du jeu en début de titre (« Terraforming Mars - Prelude 2 » -> « Prelude 2 »)
+function shortExt(x, base){
+  let t = x.title || '';
+  if (base && norm(t).startsWith(norm(base))){
+    const r = t.slice(base.length).replace(/^[\s\-–—:·]+/, '');
+    if (r) t = r;
+  }
+  return t + (x.subtitle ? ' - ' + x.subtitle : '');
+}
+// affichage des éléments liés à Myludo sur la page d'accueil (admin uniquement)
+function syncMl(){
+  const adm = isAdmin();
+  $('mlRow').style.display = adm && MYLUDO_RELAY ? '' : 'none';
+  const pk = $('mlPick');
+  if (adm && mlGame){
+    pk.style.display = '';
+    pk.textContent = 'Fiche Myludo : ' + mlGame.title + (mlGame.subtitle ? ' - ' + mlGame.subtitle : '') + (mlGame.edition ? ' (' + mlGame.edition + ')' : '');
+  } else pk.style.display = 'none';
+  $('extRow').style.display = adm && $('gext').checked && MYLUDO_RELAY ? '' : 'none';
+  $('extSum').textContent = mlExts.length ? mlExts.map(x => shortExt(x, mlGame && mlGame.title)).join(', ') : 'Aucune extension choisie';
+}
+async function mlFetch(params){
+  if (!MYLUDO_RELAY) throw new Error('Relais Myludo non configuré.');
+  const u = firebase.auth().currentUser;
+  if (!u) throw new Error('Connecte-toi en administrateur.');
+  const tok = await u.getIdToken();
+  const r = await fetch(MYLUDO_RELAY.replace(/\/$/, '') + '/search?' + new URLSearchParams(params), {headers: {Authorization: 'Bearer ' + tok}});
+  if (!r.ok) throw new Error('Relais Myludo : erreur ' + r.status);
+  return r.json();
+}
+// toutes les pages d'une recherche (18 résultats par page), sans doublon
+async function mlAll(q, filter, lang){
+  const out = [], seen = new Set();
+  let count = 0;
+  for (let page = 1; page <= 6; page++){
+    const d = await mlFetch({q, filter, lang, page});
+    count = d.count || 0;
+    if (!d.list || !d.list.length) break;
+    d.list.forEach(it => { if (!seen.has(it.id)){ seen.add(it.id); out.push(mlItem(it)); } });
+    if (out.length >= count) break;
+  }
+  return out;
+}
+function mlEmpty(box, msg, err){ box.innerHTML = '<div class="hint"' + (err ? ' style="color:#d93025"' : '') + '>' + esc(msg) + '</div>'; }
+function mlImg(it){
+  return it.image && it.image.startsWith('https://www.myludo.fr/')
+    ? '<img src="' + esc(it.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'
+    : '<span style="flex:0 0 48px;width:48px"></span>';
+}
+const mlTitle = it => esc(it.title) + (it.subtitle ? '<small>' + esc(it.subtitle) + '</small>' : '');
+
+// 1) choix du jeu
+let mlSeq = 0, mlCache = [], mlTimer = null;
+function openGameSearch(){
+  setSheet('<div class="sh-title">Chercher sur Myludo</div>' +
+    '<input id="mlq" type="text" placeholder="Nom du jeu" maxlength="80" autocomplete="off" value="' + esc($('code').value.trim()) + '">' +
+    '<label class="opt" style="padding:0"><input type="checkbox" id="mlfr" checked><span>Français uniquement</span></label>' +
+    '<div id="mlres" class="mlres"></div>', 'Fermer', null, true);
+  const inp = $('mlq'), box = $('mlres');
+  inp.oninput = () => { clearTimeout(mlTimer); mlTimer = setTimeout(runGameSearch, 450); };
+  inp.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); clearTimeout(mlTimer); runGameSearch(); } };
+  $('mlfr').onchange = runGameSearch;
+  box.onclick = e => { const b = e.target.closest('button[data-i]'); if (b && mlCache[+b.dataset.i]) pickMlGame(mlCache[+b.dataset.i]); };
+  if (inp.value.length >= 2) runGameSearch(); else mlEmpty(box, 'Tape au moins 2 lettres.');
+  inp.focus();
+}
+async function runGameSearch(){
+  const inp = $('mlq'), box = $('mlres');
+  if (!inp || !box) return;
+  const q = inp.value.trim(), n = ++mlSeq;
+  if (q.length < 2){ mlEmpty(box, 'Tape au moins 2 lettres.'); return; }
+  mlEmpty(box, 'Recherche…');
+  try {
+    const list = await mlAll(q, 'basegame', $('mlfr').checked ? 'fr' : '');
+    if (n !== mlSeq || !$('mlres')) return;
+    mlCache = list;
+    box.innerHTML = list.length
+      ? list.map((it, i) => '<button type="button" class="mlit" data-i="' + i + '">' + mlImg(it) + '<span class="mlt">' + mlTitle(it) + '</span><span>' + (it.edition || '') + '</span></button>').join('')
+      : '<div class="hint">Aucun résultat.</div>';
+  } catch (e) { if (n === mlSeq && $('mlres')) mlEmpty(box, e.message, true); }
+}
+function pickMlGame(it){
+  mlGame = mlItem(it);
+  $('code').value = it.title + (it.subtitle ? ' - ' + it.subtitle : '');
+  mlLabel = $('code').value.trim();
+  $('code').classList.remove('bad'); $('homeErr').textContent = '';
+  // jeu déjà joué : on reprend ses extensions connues
+  const k = catalog[keyOf($('code').value)];
+  mlExts = k && k.exts ? (Array.isArray(k.exts) ? k.exts : Object.values(k.exts)).map(mlItem) : [];
+  if (k && k.ext) $('gext').checked = true;
+  closeSheet(); syncMl();
+  if ($('gext').checked) openExtSearch();
+}
+
+// 2) choix des extensions (cases à cocher)
+let extSel = new Map(), extCand = [], extSeq = 0, extBase = '';
+function openExtSearch(){
+  extBase = (mlGame && mlGame.title) || $('code').value.trim();
+  if (extBase.length < 2){ uiAlert("Choisis d'abord le jeu."); $('gext').checked = false; syncMl(); return; }
+  extSel = new Map(mlExts.map(x => [x.id, x]));
+  extCand = [];
+  setSheet('<div class="sh-title">Extensions</div><div class="sh-sub">' + esc(extBase) + '</div>' +
+    '<input id="exq" type="text" placeholder="Filtrer la liste" autocomplete="off">' +
+    '<label class="opt" style="padding:0"><input type="checkbox" id="exfr" checked><span>Français uniquement</span></label>' +
+    '<div id="exres" class="mlres"></div>', 'Valider', commitExt, true);
+  $('exq').oninput = drawExt;
+  $('exfr').onchange = loadExt;
+  $('exres').onchange = e => {
+    const c = e.target.closest('input[data-id]');
+    if (!c) return;
+    const it = extCand.find(x => x.id === c.dataset.id) || extSel.get(c.dataset.id);
+    if (c.checked && it) extSel.set(c.dataset.id, it); else extSel.delete(c.dataset.id);
+  };
+  loadExt();
+}
+async function loadExt(){
+  const n = ++extSeq, box = $('exres');
+  if (!box) return;
+  mlEmpty(box, 'Recherche…');
+  try {
+    const list = await mlAll(extBase, 'extension', $('exfr').checked ? 'fr' : '');
+    if (n !== extSeq || !$('exres')) return;
+    extCand = list; drawExt();
+  } catch (e) { if (n === extSeq && $('exres')) mlEmpty(box, e.message, true); }
+}
+function drawExt(){
+  const box = $('exres');
+  if (!box) return;
+  const f = norm($('exq').value), seen = new Set();
+  // les extensions déjà choisies restent visibles même si le filtre de langue ne les retrouve pas
+  const all = extCand.concat([...extSel.values()].filter(x => !extCand.some(c => c.id === x.id)));
+  const rows = all.filter(it => !seen.has(it.id) && seen.add(it.id) && (!f || norm(it.title + ' ' + it.subtitle).includes(f)));
+  box.innerHTML = rows.length
+    ? rows.map(it => '<label class="opt"><input type="checkbox" data-id="' + esc(it.id) + '"' + (extSel.has(it.id) ? ' checked' : '') + '>' +
+        mlImg(it) + '<span class="mlt">' + mlTitle(it) + '</span><span>' + (it.edition || '') + '</span></label>').join('')
+    : '<div class="hint">Aucune extension trouvée.</div>';
+}
+function commitExt(){ mlExts = [...extSel.values()]; closeSheet(); syncMl(); }
+
+$('mlSearch').onclick = openGameSearch;
+$('extEdit').onclick = openExtSearch;
+$('gext').addEventListener('change', () => {
+  if (!$('gext').checked){ mlExts = []; syncMl(); return; }
+  syncMl();
+  if (isAdmin() && MYLUDO_RELAY) openExtSearch();
+});
+// le nom a été retapé à la main : la fiche Myludo choisie ne correspond plus
+$('code').addEventListener('input', () => {
+  if ((mlGame || mlExts.length) && $('code').value.trim() !== mlLabel){ mlGame = null; mlExts = []; syncMl(); }
+});
 let gList = [], gIdx = -1;
 function hideG(){ gList = []; gIdx = -1; $('gsugg').classList.remove('on'); $('gsugg').innerHTML = ''; }
 function markG(scroll){
@@ -883,6 +1060,10 @@ function pickG(c){
   $('code').value = c.name || '';
   $('gext').checked = !!c.ext;               // jeu connu : on reprend l'option « extension »
   $('code').classList.remove('bad'); $('homeErr').textContent = '';
+  mlLabel = $('code').value.trim();          // fiche Myludo et extensions déjà connues pour ce jeu
+  mlGame = c.myludo ? mlItem(c.myludo) : null;
+  mlExts = (Array.isArray(c.exts) ? c.exts : Object.values(c.exts || {})).map(mlItem);
+  syncMl();
   hideG();
 }
 function showG(){
@@ -956,7 +1137,8 @@ function pill(p){
 function renderLobby(){
   show('lobby');
   $('lobbyCode').textContent = g.name || code;
-  $('lobbyExt').textContent = g.ext ? 'avec extension' : '';
+  const gx = Array.isArray(g.exts) ? g.exts : Object.values(g.exts || {});
+  $('lobbyExt').textContent = !g.ext ? '' : (gx.length ? 'avec ' + gx.map(x => shortExt(x, g.myludo && g.myludo.title)).join(', ') : 'avec extension');
   const adm = isAdmin(), mode = modeOf(), o = g.options || {}, started = !!g.started;
   const seqIa = mode === 'seq' || mode === 'ia', sim = mode === 'sim';
   const showFirst = seqIa || (sim && !!o.rotate);
