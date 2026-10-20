@@ -72,8 +72,10 @@
   input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
   input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
   input[type=color].bad{border:3px solid #d93025}
-  .swatches{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
-  button.sw{width:34px;height:34px;flex:0 0 34px;padding:0;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+  .swatches{display:grid;grid-template-columns:repeat(7,1fr);gap:10px 6px;justify-items:center;margin:14px 0 4px}   /* deux lignes, ordre arc-en-ciel */
+  button.sw{width:100%;max-width:38px;aspect-ratio:1/1;padding:0;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+  button.sw.more{background:conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#4fc3f7,#4169e1,#8e24aa,#f06292,#e53935);
+    color:#fff;font-size:24px;font-weight:700;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
   button.sw.sel{box-shadow:0 0 0 3px var(--ink)}
   button.sw.taken{opacity:.3}
 
@@ -95,6 +97,7 @@
   .row{display:flex;gap:10px;align-items:center;justify-content:center;margin:10px 0}
   .row>*{flex:1}
   .row>button{flex:0 0 auto;max-width:100%}
+  .row.btns2>button{flex:1}
 
   .err{color:#d93025;margin-top:10px;min-height:20px;font-size:15px}
   #nameErr{margin:0;line-height:20px;text-align:center}
@@ -186,6 +189,7 @@
   #modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px;
     background:rgba(27,34,51,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
   #modal.on{display:flex}
+  #modal.stack .mbtns{flex-direction:column}     /* Annuler au-dessus, bouton principal en pleine largeur */
   .mbox{width:min(100%,360px);padding:24px;text-align:center;background:rgba(255,255,255,.82)}
   #mtext{font-size:17px;line-height:1.4;white-space:pre-line;word-break:break-word;margin-bottom:20px}
   .mbtns{display:flex;gap:10px;justify-content:center}
@@ -201,7 +205,6 @@
   .stt td{padding:9px 6px;border-top:1px solid rgba(27,34,51,.08)}
   .stt tr.tot td{font-weight:700}
   .stt.ctr th,.stt.ctr td{text-align:center;vertical-align:middle;white-space:nowrap}
-  .stt.ctr th:first-child,.stt.ctr td:first-child{text-align:left}
   .sh-game{font-size:32px;font-weight:800;text-align:center;letter-spacing:-.02em;line-height:1.1;word-break:break-word}
   /* panneau de fin : défilement horizontal, première colonne (prénoms) figée */
   .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -240,8 +243,10 @@
     <h1>C'est à qui de jouer ?</h1>
     <div class="glass card">
       <label class="lab" for="code">Nom du jeu</label>
-      <input id="code" type="text" placeholder="ex. Catan" autocomplete="off" list="gamelist">
-      <datalist id="gamelist"></datalist>
+      <div class="acwrap">
+        <input id="code" type="text" placeholder="ex. Catan" autocomplete="off">
+        <div id="gsugg" class="sugg"></div>
+      </div>
       <label class="opt" style="padding:12px 0 0;font-weight:500"><input type="checkbox" id="gext"><span>avec extension</span></label>
       <div class="row" style="margin-top:16px"><button id="go" class="pri" disabled>En attente</button></div>
       <div class="err" id="homeErr"></div>
@@ -259,8 +264,8 @@
     <div class="glass card" id="pickCard" style="display:none">
       <h2>Choisir un joueur</h2>
       <div id="pickList"></div>
-      <div class="row"><button id="pickBtn" class="pri">Choisir mon prénom et ma couleur</button></div>
     </div>
+    <div class="row" id="pickRow" style="display:none"><button id="pickBtn" class="pri">Ajouter mon prénom et ma couleur</button></div>
 
     <div class="glass card" id="addCard">
       <h2 id="addTitle">Ajouter un joueur</h2>
@@ -272,9 +277,8 @@
         <input id="pcolor" type="color" value="#e53935">
       </div>
       <div class="swatches" id="swatches"></div>
-      <div class="row" style="margin:6px 0 0"><button id="moreColors" class="sm" type="button">Plus de couleurs</button></div>
       <div class="err" id="nameErr"></div>
-      <div class="row"><button id="addP" class="pri">Ajouter</button><button id="addCancel" style="display:none">Annuler</button></div>
+      <div class="row btns2"><button id="addCancel" style="display:none">Annuler</button><button id="addP" class="pri">Ajouter</button></div>
     </div>
 
     <div class="row" id="optToggleRow" style="display:none"><button id="optToggle" class="link" style="font-size:16px;text-decoration:underline">Voir le mode de jeu et les options</button></div>
@@ -304,9 +308,8 @@
       <label class="opt" id="lblHurry"><input type="checkbox" id="optHurry"><span id="hurryTxt"></span></label>
     </div>
 
-    <div class="row" id="startRow" style="margin-top:16px"><button id="start" class="pri" disabled>Rejoindre</button></div>
+    <div class="row btns2" id="actRow" style="margin-top:16px"><button id="cancelLobby">Annuler</button><button id="start" class="pri" disabled>Rejoindre</button></div>
     <div class="hint ctr" id="startHint"></div>
-    <div class="row" id="cancelRow" style="margin-top:6px"><button id="cancelLobby">Annuler</button></div>
   </div>
 </div>
 
@@ -415,8 +418,8 @@ db.ref('.info/serverTimeOffset').on('value', s => { srvOff = s.val() || 0; });
 const nowS = () => Date.now() + srvOff;
 
 const LIGHT = 'radial-gradient(60% 50% at 15% 8%,#bcd6ff 0,transparent 62%),radial-gradient(50% 45% at 92% 18%,#ffd1e4 0,transparent 62%),radial-gradient(60% 50% at 70% 96%,#c6f1dc 0,transparent 62%),#eef2fa';
-const PALETTE = ['#e53935','#fdd835','#fb8c00','#43a047','#4169e1','#8e24aa','#9e9e9e','#795548','#f06292','#4fc3f7','#111111','#ffffff'];
-const PALETTE_NAMES = ['Rouge','Jaune','Orange','Vert','Bleu royal','Violet','Gris','Marron','Rose','Bleu clair','Noir','Blanc'];
+const PALETTE = ['#e53935','#fb8c00','#fdd835','#43a047','#4fc3f7','#4169e1','#8e24aa','#f06292','#795548','#9e9e9e','#111111','#ffffff'];
+const PALETTE_NAMES = ['Rouge','Orange','Jaune','Vert','Bleu clair','Bleu royal','Violet','Rose','Marron','Gris','Noir','Blanc'];
 /* ---------- Sons (Web Audio : aucun fichier) ---------- */
 let actx = null, sndOn = localStorage.getItem('tour_snd') !== '0';
 function unlockAudio(){
@@ -459,13 +462,14 @@ $('snd').onclick = e => {
 syncSnd();
 
 /* ---------- Messages en modale (remplacent alert / confirm) ---------- */
-function uiModal(msg, confirmMode, okLabel, cancelLabel){
+function uiModal(msg, confirmMode, okLabel, cancelLabel, stack){
   return new Promise(resolve => {
     const m = $('modal');
     $('mtext').textContent = msg;
     $('mok').textContent = okLabel || 'OK';
     $('mcancel').style.display = confirmMode ? '' : 'none';
     $('mcancel').textContent = cancelLabel || 'Annuler';
+    m.classList.toggle('stack', !!stack);
     m.classList.add('on');
     const done = v => {
       m.classList.remove('on');
@@ -500,7 +504,7 @@ function show(id){
 }
 // Déconnexion : libère mon joueur, oublie la table sur cet appareil et revient à l'accueil
 $('logout').onclick = async () => {
-  if (!await uiConfirm('Oublier ta session sur cet appareil et quitter la table ?', '(╯°□°)╯︵ ┻━┻')) return;
+  if (!await uiModal('Oublier ta session sur cet appareil et quitter la table ?', true, '(╯°□°)╯︵ ┻━┻', 'Annuler', true)) return;
   const r = ref, i = meIdx;
   if (r && i !== null && modeOf() !== 'solo' && modeOf() !== 'ia') r.child('claims/' + i).remove().catch(() => {});
   leaveGame();
@@ -697,7 +701,7 @@ function join(c){
         if (!creating){
           creating = true;
           const ext = !!$('gext').checked, key = code;
-          ref.update({name: gameName, ext: ext, current: 0, turn: 1, round: 1, started: false, options: {rewind: true, mode: 'seq'}})
+          ref.update({name: gameName, ext: ext, current: 0, turn: 1, round: 1, started: false, options: {rewind: true, hurry: true, mode: 'seq'}})
             .then(() => {
               db.ref('lobby').set({code: key, name: gameName, ext: ext, t: firebase.database.ServerValue.TIMESTAMP}).catch(() => {});
               // le nom du jeu est mémorisé (autocomplétion quand on rejoue)
@@ -814,7 +818,6 @@ function leaveGame(){
 let catalog = {};
 db.ref('catalog').on('value', s => {
   catalog = s.val() || {};
-  $('gamelist').innerHTML = Object.keys(catalog).map(k => `<option value="${esc(catalog[k].name || k)}">`).join('');
 }, () => {});
 $('code').addEventListener('input', () => {
   if (!isAdmin()) return;
@@ -837,7 +840,55 @@ function toggleFav(p){
   }
 }
 $('go').onclick = () => join($('code').value);
-$('code').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('go').disabled) join($('code').value); });
+let gList = [], gIdx = -1;
+function hideG(){ gList = []; gIdx = -1; $('gsugg').classList.remove('on'); $('gsugg').innerHTML = ''; }
+function markG(scroll){
+  const kids = [...$('gsugg').children];
+  kids.forEach((b, i) => b.classList.toggle('act', i === gIdx));
+  const a = kids[gIdx];
+  if (scroll && a && a.scrollIntoView) a.scrollIntoView({block: 'nearest'});
+}
+function pickG(c){
+  $('code').value = c.name || '';
+  $('gext').checked = !!c.ext;               // jeu connu : on reprend l'option « extension »
+  $('code').classList.remove('bad'); $('homeErr').textContent = '';
+  hideG();
+}
+function showG(){
+  const v = norm($('code').value);
+  if (!isAdmin() || !v){ hideG(); return; }
+  const m = Object.keys(catalog).map(k => catalog[k]).filter(x => x && x.name && norm(x.name).includes(v) && norm(x.name) !== v)
+    .sort((a, b) => (norm(b.name).startsWith(v) ? 1 : 0) - (norm(a.name).startsWith(v) ? 1 : 0)).slice(0, 6);
+  if (!m.length){ hideG(); return; }
+  gList = m; gIdx = -1;
+  const box = $('gsugg'); box.innerHTML = '';
+  m.forEach(c => {
+    const b = document.createElement('button');
+    b.textContent = c.name + (c.ext ? ' (avec extension)' : '');
+    b.onpointerdown = e => { e.preventDefault(); pickG(c); };
+    box.append(b);
+  });
+  box.classList.add('on');
+}
+$('code').addEventListener('input', showG);
+$('code').addEventListener('blur', () => setTimeout(hideG, 150));
+$('code').addEventListener('keydown', e => {
+  const open = gList.length > 0;
+  if (open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')){
+    e.preventDefault();
+    const n = gList.length;
+    gIdx = e.key === 'ArrowDown' ? (gIdx + 1) % n : (gIdx <= 0 ? n - 1 : gIdx - 1);
+    markG(true);
+    return;
+  }
+  if (e.key === 'Escape' && open){ e.preventDefault(); hideG(); return; }
+  if (e.key === 'Enter'){
+    e.preventDefault();
+    if (open && gIdx >= 0){ pickG(gList[gIdx]); return; }     // suggestion choisie dans la liste
+    hideG();
+    if (!$('go').disabled) join($('code').value);              // sinon Entrée valide le formulaire
+  }
+});
 $('code').addEventListener('input', () => { $('code').classList.remove('bad'); $('homeErr').textContent = ''; });
 $('back').onclick = () => leaveGame();
 
@@ -858,8 +909,8 @@ function render(){
 }
 
 /* ---------- Préparation ---------- */
-const HURRY_SEQ = 'Mode Time out<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
-const HURRY_SIM = 'Mode Time out au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
+const HURRY_SEQ = 'Time out<br><small>Si tous les autres tapotent 10 fois en 10 s, le joueur actif clignote 30 s puis son tour est passé.</small>';
+const HURRY_SIM = 'Time out au dernier joueur<br><small>Quand il ne reste qu\'un joueur, il clignote 30 s puis sa partie est terminée.</small>';
 const ROUNDS_SEQ = 'Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu\'à ce que tout le monde ait passé.</small>';
 const ROUNDS_SIM = 'Jeu par manche<br><small>Les parties sont comptées en manches : une manche se termine quand tout le monde a fini.</small>';
 
@@ -908,6 +959,7 @@ function renderLobby(){
 
   // ----- interface joueur : « Choisir un joueur » (clic = sélection) / « Ajouter un joueur »
   $('pickCard').style.display = canPick && !adding ? '' : 'none';
+  $('pickRow').style.display = canPick && !adding ? '' : 'none';
   $('addCard').style.display = adm ? (started ? 'none' : '') : (canPick && adding ? '' : 'none');
   $('addCancel').style.display = adm ? 'none' : '';
   $('ordCard').style.display = adm ? '' : 'none';
@@ -953,16 +1005,16 @@ function renderLobby(){
   else if (mode === 'ia'){ ok = list.filter(p => !p.ai).length === 1; if (list.length > 1) hint = "Avec l'IA : un seul joueur (l'IA est ajoutée au lancement)."; }
   else ok = list.length >= 2;
   if (adm && !started){
-    $('startRow').style.display = '';
+    sb.style.display = '';
     sb.textContent = 'Lancer la partie'; sb.disabled = !ok; $('startHint').textContent = hint;
   } else if (started){
-    $('startRow').style.display = '';
+    sb.style.display = '';
     sb.textContent = 'Rejoindre'; sb.disabled = mode === 'solo' || mode === 'ia'; $('startHint').textContent = '';
   } else {
-    $('startRow').style.display = 'none';
+    sb.style.display = 'none';
     $('startHint').textContent = "En attente du lancement de la partie par l'administrateur.";
   }
-  $('cancelRow').style.display = started ? 'none' : '';
+  $('cancelLobby').style.display = started ? 'none' : '';
 
   // si la couleur proposée vient d'être prise (par moi ou un autre téléphone), on en propose une libre
   syncColor();
@@ -1075,10 +1127,6 @@ $('pname').addEventListener('keydown', e => {
 });
 $('pname').addEventListener('input', () => { nameErr(''); $('pname').classList.remove('bad'); showSugg(); });
 $('pcolor').addEventListener('input', () => { nameErr(''); syncColor(); });
-$('moreColors').onclick = () => {
-  const c = $('pcolor');
-  try { if (c.showPicker) c.showPicker(); else c.click(); } catch (e) { c.click(); }
-};
 function colorTaken(c){ return players().some(p => String(p.color).toLowerCase() === String(c).toLowerCase()); }
 // rond de couleur : bordure rouge si la couleur est déjà prise ; pastilles de la palette (prises = estompées)
 function syncColor(){
@@ -1093,6 +1141,14 @@ function syncColor(){
     b.onclick = () => { $('pcolor').value = c; nameErr(''); syncColor(); };
     box.append(b);
   });
+  // « Plus de couleurs » : ouvre le sélecteur du téléphone
+  const more = document.createElement('button');
+  more.type = 'button'; more.className = 'sw more'; more.title = 'Plus de couleurs'; more.textContent = '+';
+  more.onclick = () => {
+    const c = $('pcolor');
+    try { if (c.showPicker) c.showPicker(); else c.click(); } catch (e) { c.click(); }
+  };
+  box.append(more);
 }
 
 /* ---------- Autocomplétion du prénom (favoris), à partir de 2 lettres ---------- */
@@ -1117,7 +1173,7 @@ function showSugg(){
   const taken = players().map(p => norm(p.name));
   const m = Object.keys(favs).map(k => favs[k]).filter(f => f && f.name && norm(f.name).startsWith(v) && !taken.includes(norm(f.name))).slice(0, 5);
   if (!m.length){ hideSugg(); return; }
-  suggList = m; suggIdx = 0;      // 1er choix présélectionné : Entrée le valide en priorité
+  suggList = m; suggIdx = -1;     // rien de sélectionné : Entrée valide le formulaire, sauf si on a choisi dans la liste (flèches)
   const box = $('sugg'); box.innerHTML = '';
   m.forEach(f => {
     const b = document.createElement('button');
