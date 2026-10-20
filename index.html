@@ -437,7 +437,7 @@ const db = firebase.database();
 const $ = id => document.getElementById(id);
 
 /* ============ À REMPLIR : adresse du relais Myludo (Cloudflare Worker) ============ */
-const MYLUDO_RELAY = 'https://myludo-relay.hisaux.workers.dev';     // ex. 'https://myludo-relay.moncompte.workers.dev'
+const MYLUDO_RELAY = '';     // ex. 'https://myludo-relay.moncompte.workers.dev'
 /* ================================================================================== */
 let mlGame = null, mlExts = [], mlLabel = '';   // fiche Myludo choisie, extensions validées, texte du champ au moment du choix
 
@@ -925,7 +925,11 @@ async function mlFetch(params){
   if (!u) throw new Error('Connecte-toi en administrateur.');
   const tok = await u.getIdToken();
   const r = await fetch(MYLUDO_RELAY.replace(/\/$/, '') + '/search?' + new URLSearchParams(params), {headers: {Authorization: 'Bearer ' + tok}});
-  if (!r.ok) throw new Error('Relais Myludo : erreur ' + r.status);
+  if (!r.ok){
+    let why = '';
+    try { why = (await r.json()).why || ''; } catch (e) {}
+    throw new Error('Relais Myludo : erreur ' + r.status + (why ? ' (' + why + ')' : ''));
+  }
   return r.json();
 }
 // toutes les pages d'une recherche (18 résultats par page), sans doublon
