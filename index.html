@@ -2206,9 +2206,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   '.dq-d{position:relative;width:var(--s);height:var(--s);transform-style:preserve-3d}' +
   '.dq-hop{position:absolute;inset:0;transform-style:preserve-3d}' +
   '.dq-hop.go{animation:dqhop 1.4s cubic-bezier(.3,.6,.4,1)}' +
-  '.dq-poly .dq-hop.go{animation-name:dqspin}' +
   '@keyframes dqhop{0%{transform:translateY(0)}25%{transform:translateY(-46px)}50%{transform:translateY(0)}65%{transform:translateY(-16px)}80%{transform:translateY(0)}90%{transform:translateY(-4px)}100%{transform:translateY(0)}}' +
-  '@keyframes dqspin{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-44px) rotate(220deg) scale(1.1)}50%{transform:translateY(0) rotate(400deg) scale(1)}65%{transform:translateY(-14px) rotate(560deg)}80%{transform:translateY(0) rotate(680deg)}100%{transform:translateY(0) rotate(720deg)}}' +
   '.dq-sh{position:absolute;left:12%;right:12%;bottom:-20px;height:10px;border-radius:50%;background:#1b2233;opacity:.12}' +
   '.dq-sh.go{animation:dqsh 1.4s cubic-bezier(.3,.6,.4,1)}' +
   '@keyframes dqsh{0%{transform:scale(1);opacity:.12}25%{transform:scale(.6);opacity:.05}50%{transform:scale(1);opacity:.12}65%{transform:scale(.85);opacity:.08}80%,100%{transform:scale(1);opacity:.12}}' +
@@ -2220,10 +2218,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   '.dq-f1{transform:rotateY(0deg) translateZ(calc(var(--s)/2))}.dq-f6{transform:rotateY(180deg) translateZ(calc(var(--s)/2))}' +
   '.dq-f3{transform:rotateY(90deg) translateZ(calc(var(--s)/2))}.dq-f4{transform:rotateY(-90deg) translateZ(calc(var(--s)/2))}' +
   '.dq-f2{transform:rotateX(90deg) translateZ(calc(var(--s)/2))}.dq-f5{transform:rotateX(-90deg) translateZ(calc(var(--s)/2))}' +
-  '.dq-poly svg{display:block;width:100%;height:100%;overflow:visible}' +
   '.dq-cn{position:absolute;inset:0;transform-style:preserve-3d}' +
-  '.dq-cf{position:absolute;inset:0;border-radius:50%;box-sizing:border-box;border:4px solid #c9a227;background:#f3d46b;color:#6b4f00;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:calc(var(--s)*.26);backface-visibility:hidden;-webkit-backface-visibility:hidden}' +
-  '.dq-cf.b{transform:rotateY(180deg)}' +
+  '.dq-cf{position:absolute;inset:0;border-radius:50%;box-sizing:border-box;border:3px solid #b08a1c;background:radial-gradient(circle at 35% 30%,#fbe58f,#f3d46b 55%,#e2bd4b);box-shadow:inset 0 0 0 5px #f3d46b,inset 0 0 0 6.5px rgba(150,110,0,.55);color:#6b4f00;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:calc(var(--s)*.24);backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:translateZ(calc(var(--t)/2))}' +
+  '.dq-cf.b{transform:rotateY(180deg) translateZ(calc(var(--t)/2))}' +
+  '.dq-rim{position:absolute;left:50%;top:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden}' +
+  '.dq-solid{position:absolute;left:0;top:0;width:100%;height:100%;transform-style:preserve-3d}' +
+  '.dq-pf{position:absolute;left:50%;top:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden}' +
+  '.dq-pf svg{display:block;overflow:visible}' +
   '.dq-res{text-align:center;margin:18px 0 14px;min-height:62px;transition:opacity .2s}' +
   '.dq-res.dim{opacity:.25}' +
   '.dq-big{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1}' +
@@ -2251,14 +2252,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var PIPS = {1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]};
   var ROT = {1: [0, 0], 6: [0, 180], 3: [0, -90], 4: [0, 90], 2: [-90, 0], 5: [90, 0]};
   var CUBE_FACES = [[1, 0], [6, 0], [3, 1], [4, 1], [2, 0], [5, 1]];
-  var SHAPES = {
-    4: ['50,8 94,86 6,86', 66],
-    8: ['50,4 94,50 50,96 6,50', 52],
-    10: ['50,2 90,38 50,98 10,38', 48],
-    12: ['50,5 95,38 78,92 22,92 5,38', 54],
-    20: ['50,4 92,27 92,73 50,96 8,73 8,27', 52]
-  };
-
   function div(cls) { var d = document.createElement('div'); d.className = cls; return d; }
   function restart(el) { el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); }
 
@@ -2288,27 +2281,213 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     };
   }
 
-  function makePoly(f) {
-    var w = div('dq-d dq-poly'), sh = SHAPES[f];
-    w.innerHTML = '<div class="dq-sh"></div><div class="dq-hop"><svg viewBox="0 0 100 100" aria-hidden="true">' +
-      '<polygon points="' + sh[0] + '" fill="#fff" stroke="rgba(27,34,51,.55)" stroke-width="3" stroke-linejoin="round"/>' +
-      '<text x="50" y="' + sh[1] + '" text-anchor="middle" dominant-baseline="central" font-size="' + (f === 20 ? 30 : 34) + '" font-weight="700" fill="#1b2233">1</text></svg></div>';
-    var tx = w.querySelector('text'), timer = null;
+  /* ---------- Géométrie : enveloppe convexe générique pour les polyèdres ---------- */
+  var PHI = (1 + Math.sqrt(5)) / 2;
+  function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+  function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function nrm(a) { var l = Math.sqrt(dot(a, a)) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+
+  function vertsOf(f) {
+    var V = [], i, j, k, a, b;
+    if (f === 4) V = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]];
+    else if (f === 8) V = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    else if (f === 12) {
+      for (i = -1; i <= 1; i += 2) for (j = -1; j <= 1; j += 2) for (k = -1; k <= 1; k += 2) V.push([i, j, k]);
+      for (a = -1; a <= 1; a += 2) for (b = -1; b <= 1; b += 2) {
+        V.push([0, a / PHI, b * PHI]); V.push([a / PHI, b * PHI, 0]); V.push([a * PHI, 0, b / PHI]);
+      }
+    } else if (f === 20) {
+      for (a = -1; a <= 1; a += 2) for (b = -1; b <= 1; b += 2) {
+        V.push([0, a, b * PHI]); V.push([a, b * PHI, 0]); V.push([b * PHI, 0, a]);
+      }
+    } else if (f === 10) {
+      var z = 0.12, h = z * (1 + Math.cos(Math.PI / 5)) / (1 - Math.cos(Math.PI / 5));
+      V.push([0, -h, 0]); V.push([0, h, 0]);
+      for (i = 0; i < 5; i++) {
+        V.push([Math.cos(i * 2 * Math.PI / 5), -z, Math.sin(i * 2 * Math.PI / 5)]);
+        V.push([Math.cos((i + .5) * 2 * Math.PI / 5), z, Math.sin((i + .5) * 2 * Math.PI / 5)]);
+      }
+    }
+    return V;
+  }
+
+  var GEO = {};
+  function geometry(f) {
+    if (GEO[f]) return GEO[f];
+    var V = vertsOf(f), R = 0, i, j, k, m, faces = [], seen = {};
+    V.forEach(function (v) { R = Math.max(R, Math.sqrt(dot(v, v))); });
+    V = V.map(function (v) { return [v[0] / R, v[1] / R, v[2] / R]; });
+    for (i = 0; i < V.length; i++) for (j = i + 1; j < V.length; j++) for (k = j + 1; k < V.length; k++) {
+      var a = V[i], nn = cross(sub(V[j], a), sub(V[k], a));
+      if (dot(nn, nn) < 1e-12) continue;
+      nn = nrm(nn);
+      var d = dot(nn, a), pos = 0, neg = 0;
+      for (m = 0; m < V.length; m++) { var s = dot(nn, V[m]) - d; if (s > 1e-6) pos++; else if (s < -1e-6) neg++; }
+      if (pos && neg) continue;
+      if (pos) { nn = [-nn[0], -nn[1], -nn[2]]; d = -d; }
+      var key = nn.map(function (x) { return Math.round(x * 1000); }).join(',');
+      if (seen[key]) continue; seen[key] = 1;
+      var idx = []; for (m = 0; m < V.length; m++) if (Math.abs(dot(nn, V[m]) - d) < 1e-6) idx.push(m);
+      faces.push({n: nn, idx: idx});
+    }
+    faces.forEach(function (F) {
+      var c = [0, 0, 0]; F.idx.forEach(function (q) { c[0] += V[q][0]; c[1] += V[q][1]; c[2] += V[q][2]; });
+      c = [c[0] / F.idx.length, c[1] / F.idx.length, c[2] / F.idx.length];
+      var far = F.idx[0], fd = -1;
+      F.idx.forEach(function (q) { var dd = dot(sub(V[q], c), sub(V[q], c)); if (dd > fd + 1e-9) { fd = dd; far = q; } });
+      var up = nrm(sub(V[far], c)), ey = [-up[0], -up[1], -up[2]], ex = nrm(cross(ey, F.n));
+      var pts = F.idx.map(function (q) { var p = sub(V[q], c); return [dot(p, ex), dot(p, ey)]; });
+      pts.sort(function (p, q) { return Math.atan2(p[1], p[0]) - Math.atan2(q[1], q[0]); });
+      var A = 0, gx = 0, gy = 0;
+      pts.forEach(function (p, t) {
+        var q = pts[(t + 1) % pts.length], w = p[0] * q[1] - q[0] * p[1];
+        A += w; gx += (p[0] + q[0]) * w; gy += (p[1] + q[1]) * w;
+      });
+      gx /= 3 * A; gy /= 3 * A;
+      F.ex = ex; F.ey = ey; F.ez = F.n;
+      F.c = [c[0] + gx * ex[0] + gy * ey[0], c[1] + gx * ex[1] + gy * ey[1], c[2] + gx * ex[2] + gy * ey[2]];
+      F.pts = pts.map(function (p) { return [p[0] - gx, p[1] - gy]; });
+      var inr = 1e9, mr = 0;
+      F.pts.forEach(function (p, t) {
+        var q = F.pts[(t + 1) % F.pts.length], ex2 = q[0] - p[0], ey2 = q[1] - p[1];
+        inr = Math.min(inr, Math.abs(p[0] * ey2 - p[1] * ex2) / Math.sqrt(ex2 * ex2 + ey2 * ey2));
+        mr = Math.max(mr, Math.sqrt(p[0] * p[0] + p[1] * p[1]));
+      });
+      F.inr = inr; F.mr = mr;
+    });
+    GEO[f] = faces;
+    return faces;
+  }
+
+  /* ---------- Quaternions (rotation 3D libre, interpolée à chaque image) ---------- */
+  function qmul(a, b) {
+    return [a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1], a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0],
+            a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3], a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]];
+  }
+  function qaxis(ax, ang) { var s = Math.sin(ang / 2); return [ax[0] * s, ax[1] * s, ax[2] * s, Math.cos(ang / 2)]; }
+  function qslerp(a, b, t) {
+    var c = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3], sg = 1;
+    if (c < 0) { c = -c; sg = -1; }
+    var k0, k1;
+    if (c > 0.9995) { k0 = 1 - t; k1 = t * sg; }
+    else { var th = Math.acos(c), sn = Math.sin(th); k0 = Math.sin((1 - t) * th) / sn; k1 = Math.sin(t * th) / sn * sg; }
+    var r = [k0 * a[0] + k1 * b[0], k0 * a[1] + k1 * b[1], k0 * a[2] + k1 * b[2], k0 * a[3] + k1 * b[3]], l = Math.sqrt(dot(r, r) + r[3] * r[3]);
+    return [r[0] / l, r[1] / l, r[2] / l, r[3] / l];
+  }
+  function qmat(q) {
+    var x = q[0], y = q[1], z = q[2], w = q[3];
+    return [[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+            [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]];
+  }
+  function matq(m) {
+    var t = m[0][0] + m[1][1] + m[2][2], q;
+    if (t > 0) { var s = Math.sqrt(t + 1) * 2; q = [(m[2][1] - m[1][2]) / s, (m[0][2] - m[2][0]) / s, (m[1][0] - m[0][1]) / s, s / 4]; }
+    else if (m[0][0] > m[1][1] && m[0][0] > m[2][2]) { var s0 = Math.sqrt(1 + m[0][0] - m[1][1] - m[2][2]) * 2; q = [s0 / 4, (m[0][1] + m[1][0]) / s0, (m[0][2] + m[2][0]) / s0, (m[2][1] - m[1][2]) / s0]; }
+    else if (m[1][1] > m[2][2]) { var s1 = Math.sqrt(1 + m[1][1] - m[0][0] - m[2][2]) * 2; q = [(m[0][1] + m[1][0]) / s1, s1 / 4, (m[1][2] + m[2][1]) / s1, (m[0][2] - m[2][0]) / s1]; }
+    else { var s2 = Math.sqrt(1 + m[2][2] - m[0][0] - m[1][1]) * 2; q = [(m[0][2] + m[2][0]) / s2, (m[1][2] + m[2][1]) / s2, s2 / 4, (m[1][0] - m[0][1]) / s2]; }
+    var l = Math.sqrt(dot(q, q) + q[3] * q[3]);
+    return [q[0] / l, q[1] / l, q[2] / l, q[3] / l];
+  }
+  function mmul(a, b) {
+    var r = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], i, j, k;
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) for (k = 0; k < 3; k++) r[i][j] += a[i][k] * b[k][j];
+    return r;
+  }
+  var TX = -22 * Math.PI / 180, TY = -26 * Math.PI / 180;
+  var TILT = mmul([[1, 0, 0], [0, Math.cos(TX), -Math.sin(TX)], [0, Math.sin(TX), Math.cos(TX)]],
+                  [[Math.cos(TY), 0, Math.sin(TY)], [0, 1, 0], [-Math.sin(TY), 0, Math.cos(TY)]]);
+  var LIGHT = nrm([-0.35, -0.55, 0.76]);
+
+  /* ---------- Polyèdres : d4, d8, d10, d12, d20 en vrai 3D ---------- */
+  function makePoly(f, s) {
+    var G = geometry(f), R = s * 0.7, SV = 'http://www.w3.org/2000/svg';
+    var w = div('dq-d');
+    w.innerHTML = '<div class="dq-sh"></div><div class="dq-hop"><div class="dq-solid"></div></div>';
+    var solid = w.querySelector('.dq-solid'), els = [];
+    // valeurs : faces opposées de somme f + 1 (sauf d4), tirage aléatoire des paires
+    var vals = new Array(G.length), used = {}, pairs = [];
+    G.forEach(function (F, i) {
+      if (used[i]) return; used[i] = 1;
+      var o = -1;
+      G.forEach(function (H, j) { if (j !== i && !used[j] && dot(F.n, H.n) < -0.999) o = j; });
+      if (o >= 0) used[o] = 1;
+      pairs.push([i, o]);
+    });
+    var order = [], p, k;
+    for (k = 1; k <= f; k++) order.push(k);
+    if (f === 4) order.sort(function () { return Math.random() - .5; });
+    pairs.sort(function () { return Math.random() - .5; });
+    pairs.forEach(function (pr, t) {
+      if (pr[1] < 0) { vals[pr[0]] = order[t]; return; }
+      var a = t + 1, b = f + 1 - a;
+      if (Math.random() < .5) { var tmp = a; a = b; b = tmp; }
+      vals[pr[0]] = a; vals[pr[1]] = b;
+    });
+    var faceOf = {};
+    G.forEach(function (F, i) { faceOf[vals[i]] = i; });
+    G.forEach(function (F, i) {
+      var W = Math.ceil(F.mr * R * 2 + 6), div3 = div('dq-pf');
+      var c = [F.c[0] * R, F.c[1] * R, F.c[2] * R];
+      div3.style.cssText = 'width:' + W + 'px;height:' + W + 'px;margin:' + (-W / 2) + 'px 0 0 ' + (-W / 2) + 'px;transform:matrix3d(' +
+        [F.ex[0], F.ex[1], F.ex[2], 0, F.ey[0], F.ey[1], F.ey[2], 0, F.ez[0], F.ez[1], F.ez[2], 0, c[0], c[1], c[2], 1].map(function (x) { return +x.toFixed(5); }).join(',') + ')';
+      var v = vals[i], big = String(v).length > 1, fs = Math.min(F.inr * R * (big ? 1.25 : 1.6), s * .5);
+      var pts = F.pts.map(function (q) { return (q[0] * R).toFixed(2) + ',' + (q[1] * R).toFixed(2); }).join(' ');
+      div3.innerHTML = '<svg width="' + W + '" height="' + W + '" viewBox="' + (-W / 2) + ' ' + (-W / 2) + ' ' + W + ' ' + W + '" aria-hidden="true">' +
+        '<polygon points="' + pts + '" fill="#fff" stroke="rgba(27,34,51,.5)" stroke-width="1.6" stroke-linejoin="round"/>' +
+        '<text x="0" y="0" dy=".35em" text-anchor="middle" font-size="' + fs.toFixed(1) + '" font-weight="700" fill="#1b2233"' + (v === 6 || v === 9 ? ' text-decoration="underline"' : '') + '>' + v + '</text></svg>';
+      solid.appendChild(div3);
+      els.push({poly: div3.querySelector('polygon'), n: F.n});
+    });
+    var q = [0, 0, 0, 1], raf = 0;
+    function apply(qq) {
+      var m = qmat(qq);
+      solid.style.transform = 'matrix3d(' + [m[0][0], m[1][0], m[2][0], 0, m[0][1], m[1][1], m[2][1], 0, m[0][2], m[1][2], m[2][2], 0, 0, 0, 0, 1].map(function (x) { return +x.toFixed(5); }).join(',') + ')';
+      els.forEach(function (e) {
+        var n = e.n, rz = m[2][0] * n[0] + m[2][1] * n[1] + m[2][2] * n[2];
+        if (rz < -0.05) return;
+        var rx = m[0][0] * n[0] + m[0][1] * n[1] + m[0][2] * n[2], ry = m[1][0] * n[0] + m[1][1] * n[1] + m[1][2] * n[2];
+        var l = Math.max(0, rx * LIGHT[0] + ry * LIGHT[1] + rz * LIGHT[2]), vv = Math.round(206 + 49 * l);
+        e.poly.setAttribute('fill', 'rgb(' + (vv - 8) + ',' + (vv - 4) + ',' + vv + ')');
+      });
+    }
+    function target(v) {
+      var F = G[faceOf[v]];
+      return matq(mmul(TILT, [[F.ex[0], F.ex[1], F.ex[2]], [F.ey[0], F.ey[1], F.ey[2]], [F.ez[0], F.ez[1], F.ez[2]]]));
+    }
+    apply(q);
     return {
       el: w, hop: w.querySelector('.dq-hop'), sh: w.querySelector('.dq-sh'),
+      stop: function () { cancelAnimationFrame(raf); },
       set: function (v, spin, dur) {
-        clearInterval(timer);
-        if (!spin) { tx.textContent = v; return; }
-        timer = setInterval(function () { tx.textContent = 1 + rnd(f); }, 70);
-        setTimeout(function () { clearInterval(timer); tx.textContent = v; }, dur * 1000);
+        cancelAnimationFrame(raf);
+        var q1 = target(v);
+        if (!spin) { q = q1; apply(q); return; }
+        var q0 = q, ax = nrm([Math.random() - .5, Math.random() - .5, Math.random() - .5]), turns = 2 + rnd(2), t0 = performance.now();
+        (function step(now) {
+          var t = Math.min(1, (now - t0) / (dur * 1000)), e = 1 - Math.pow(1 - t, 3);
+          q = qmul(qaxis(ax, Math.PI * 2 * turns * e), qslerp(q0, q1, e));
+          apply(q);
+          if (t < 1) raf = requestAnimationFrame(step); else { q = q1; apply(q); }
+        })(t0);
       }
     };
   }
 
-  function makeCoin() {
-    var w = div('dq-d');
-    w.innerHTML = '<div class="dq-sh"></div><div class="dq-hop"><div class="dq-cn"><div class="dq-cf">Pile</div><div class="dq-cf b">Face</div></div></div>';
-    var cn = w.querySelector('.dq-cn'), cx = 0, cy = 0;
+  /* ---------- Pièce avec de l'épaisseur (tranche crantée) ---------- */
+  function makeCoin(s) {
+    var w = div('dq-d'), t = Math.round(s * 0.17), N = 44, R = s / 2;
+    w.innerHTML = '<div class="dq-sh"></div><div class="dq-hop"><div class="dq-tilt" style="transform:rotateX(-30deg) rotateY(-14deg)"><div class="dq-cn" style="--t:' + t + 'px">' +
+      '<div class="dq-cf">Pile</div><div class="dq-cf b">Face</div></div></div></div>';
+    var cn = w.querySelector('.dq-cn'), cx = 0, cy = 0, i;
+    var chord = 2 * R * Math.sin(Math.PI / N) + 1.4, ap = R * Math.cos(Math.PI / N);
+    for (i = 0; i < N; i++) {
+      var sg = div('dq-rim');
+      sg.style.cssText = 'width:' + chord.toFixed(2) + 'px;height:' + t + 'px;margin:' + (-t / 2) + 'px 0 0 ' + (-chord / 2).toFixed(2) + 'px;background:' + (i % 2 ? '#b08a1c' : '#c9a227') +
+        ';transform:rotateZ(' + (i * 360 / N) + 'deg) translateY(' + (-ap).toFixed(2) + 'px) rotateX(90deg)';
+      cn.appendChild(sg);
+    }
     return {
       el: w, hop: w.querySelector('.dq-hop'), sh: w.querySelector('.dq-sh'),
       set: function (v, spin, dur) {
@@ -2353,10 +2532,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
   }
   function build() {
+    dice.forEach(function (d) { if (d.stop) d.stop(); });
     stage.innerHTML = ''; dice = [];
-    stage.style.setProperty('--s', (cfg.n <= 2 ? 84 : cfg.n <= 4 ? 70 : 60) + 'px');
+    var sz = cfg.n <= 2 ? 84 : cfg.n <= 4 ? 70 : 60;
+    stage.style.setProperty('--s', sz + 'px');
     for (var i = 0; i < cfg.n; i++) {
-      var d = cfg.f === 2 ? makeCoin() : cfg.f === 6 ? makeCube() : makePoly(cfg.f);
+      var d = cfg.f === 2 ? makeCoin(sz) : cfg.f === 6 ? makeCube() : makePoly(cfg.f, sz);
       d.set(1 + rnd(cfg.f), false, 0);
       stage.appendChild(d.el); dice.push(d);
     }
@@ -2390,7 +2571,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }, maxd * 1000 + 250);
   }
   function openDice() { drawSeg(); build(); setBox.classList.remove('on'); gear.classList.remove('sel'); ov.classList.add('on'); }
-  function closeDice() { ov.classList.remove('on'); clearTimeout(resTimer); busy = false; }
+  function closeDice() { ov.classList.remove('on'); clearTimeout(resTimer); busy = false; dice.forEach(function (d) { if (d.stop) d.stop(); }); }
   gear.onclick = function () { var o = setBox.classList.toggle('on'); gear.classList.toggle('sel', o); };
   ov.querySelector('.dq-x').onclick = closeDice;
   ov.onclick = function (e) { if (e.target === ov) closeDice(); };
