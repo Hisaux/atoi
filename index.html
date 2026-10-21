@@ -28,7 +28,6 @@
   .screen.on{display:flex;flex-direction:column}
   .wrap{width:100%;max-width:460px;margin:0 auto}
   #home .wrap{margin:0 auto}
-  #lobby,#who{padding-top:calc(max(22px,env(safe-area-inset-top)) + 34px)}   /* sous le bouton de déconnexion */
 
   /* ---------- Verre liquide ---------- */
   .glass{
@@ -92,6 +91,7 @@
   button.pri{
     color:#fff;background:#2d69eb;
   }
+  button.pri.gray{background:#8a92a3}
   button.link{
     background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;
     padding:4px 0;font-size:14px;font-weight:500;color:#2d69eb;
@@ -191,9 +191,35 @@
   #tapc:empty{display:none}
   #end{position:fixed;right:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
     font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:#d93025}
-  #snd{position:fixed;left:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
+  #snd{position:fixed;right:8px;top:max(8px,env(safe-area-inset-top));z-index:61;
     font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:var(--ink2)}
 
+
+  /* un mobile pour tous : l'écran est découpé entre les joueurs */
+  #shared{padding:0;overflow:hidden}
+  #shz{position:absolute;inset:0}
+  .zn{position:absolute;padding:4px}
+  .zb{position:absolute;inset:4px;border-radius:26px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;
+    -webkit-user-select:none;user-select:none;border:1px solid rgba(255,255,255,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
+  .zb::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.62);pointer-events:none;transition:opacity .2s}
+  .zn.on .zb::after{opacity:0}
+  .zn.on .zb{box-shadow:0 0 0 3px rgba(27,34,51,.85),inset 0 1px 0 rgba(255,255,255,.55)}
+  .zi{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;max-width:100%}
+  .zn.flip .zi{transform:rotate(180deg)}
+  .zn-name{font-size:clamp(22px,7vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.05;overflow-wrap:anywhere}
+  .zn-msg{font-size:clamp(14px,4.2vw,20px);font-weight:600;opacity:.9;line-height:1.2}
+  .zn-t{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;opacity:.75}
+  .zn button.zp{font-size:14px;padding:7px 14px;margin-top:2px}
+  #shc{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 16px;text-align:center;border-radius:22px;
+    font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink);line-height:1.15}
+  #shc .cl{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+  #shc .cv{font-size:34px;font-weight:800;letter-spacing:-.02em}
+  #shc .cx{font-size:14px;font-weight:700;margin-top:4px}
+  #shc .cx.low{color:#d93025}
+  #shc.h{min-width:min(64vw,250px)}
+  #shc.h .cl{display:inline;margin-right:6px}#shc.h .cv{display:inline;font-size:26px}#shc.h .pp{display:inline-block;margin:0 6px}
+  #shc.v{width:84px;padding:14px 6px}
+  #shc.q{left:50%;top:50%;width:calc(50% - 8px);height:calc(50% - 8px);transform:none;margin:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:26px}
   /* modales : messages (#modal) et fiches (#sheet : chronos, choix du 1er joueur, stats) */
   #modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:24px;
     background:rgba(27,34,51,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
@@ -270,11 +296,10 @@
         <input id="code" type="text" placeholder="ex. Catan" autocomplete="off">
         <div id="gsugg" class="sugg"></div>
       </div>
-      <div class="row" id="mlRow" style="display:none;margin:12px 0 0;justify-content:flex-start"><button id="mlSearch" type="button" class="sm">Chercher sur Myludo</button></div>
       <div class="hint" id="mlPick" style="display:none"></div>
       <label class="opt" style="padding:12px 0 0;font-weight:500"><input type="checkbox" id="gext"><span>avec extension</span></label>
       <div class="row" id="extRow" style="display:none;margin:0;padding-left:40px"><span class="hint" id="extSum" style="margin:0;flex:1;text-align:left"></span><button id="extEdit" type="button" class="link">Modifier</button></div>
-      <div class="row" style="margin-top:16px"><button id="go" class="pri" disabled>En attente</button></div>
+      <div class="row" style="margin-top:16px"><button id="mlSearch" type="button" class="pri gray" style="display:none">myLudo</button><button id="go" class="pri" disabled>En attente</button></div>
       <div class="err" id="homeErr"></div>
     </div>
   </div>
@@ -330,6 +355,7 @@
       <label class="opt" id="lblRounds"><input type="checkbox" id="optRounds"><span id="roundsTxt">Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu'à ce que tout le monde ait passé.</small></span></label>
       <label class="opt" id="lblRotate"><input type="checkbox" id="optRotate"><span>Changement de 1<sup>er</sup> joueur à chaque manche<br><small>En fin de manche, on choisit le nouveau 1<sup>er</sup> joueur.</small></span></label>
 
+      <label class="opt" id="lblShared"><input type="checkbox" id="optShared"><span>Un mobile pour les contrôler tous<br><small>Tous les joueurs utilisent le même mobile : l'écran est découpé entre les joueurs (jusqu'à 4 par mobile, un second mobile est demandé au-delà). Sans Rewind ni Time out par tapotements.</small></span></label>
       <label class="opt" id="lblRewind"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
       <label class="opt" id="lblHurry"><input type="checkbox" id="optHurry"><span id="hurryTxt"></span></label>
       <label class="opt" id="lblCd"><input type="checkbox" id="optCd"><span>Compte à rebours<br><small>Chaque tour dure un temps limité (durée ci-dessous) ; quand il est écoulé, le tour est passé. Fonctionne dans tous les modes de jeu.</small></span></label>
@@ -378,12 +404,18 @@
     </div>
   </div>
   <div id="tapc"></div>
-  <button id="end">Terminer la partie</button>
-  <button id="snd">Son activé</button>
+</div>
+<button id="end" style="display:none">Terminer la partie</button>
+<button id="snd" style="display:none">Son activé</button>
+
+<!-- UN MOBILE POUR TOUS : l'écran est découpé entre les joueurs -->
+<div id="shared" class="screen">
+  <div id="shz"></div>
+  <div id="shc" class="glass"></div>
 </div>
 
 <!-- Déconnexion : oublie la session sur cet appareil (hors page de garde) -->
-<button id="logout" style="display:none;position:fixed;top:max(8px,env(safe-area-inset-top));right:8px;z-index:60;font-size:14px;padding:6px 14px;white-space:nowrap">(╯°□°)╯︵ ┻━┻</button>
+<button id="logout" style="display:none;position:fixed;bottom:max(10px,env(safe-area-inset-bottom));right:8px;z-index:60;font-size:14px;padding:6px 14px;white-space:nowrap">(╯°□°)╯︵ ┻━┻</button>
 
 <!-- Fiches : chronos, choix du 1er joueur, statistiques de fin -->
 <div id="sheet">
@@ -531,10 +563,19 @@ function setSheet(html, okLabel, onOk, closable){
 }
 function closeSheet(){ $('sheet').classList.remove('on'); $('sbody').onclick = null; }
 
+// boutons flottants : « Son » en haut à droite (écrans de jeu), « Terminer » (admin) et table flip en bas à droite
+function syncChrome(){
+  const on = $('game').classList.contains('on') || $('shared').classList.contains('on');
+  $('snd').style.display = on ? '' : 'none';
+  const endOn = on && isAdmin();
+  $('end').style.display = endOn ? '' : 'none';
+  $('logout').style.bottom = endOn ? 'calc(max(10px,env(safe-area-inset-bottom)) + 38px)' : 'max(10px,env(safe-area-inset-bottom))';
+}
 function show(id){
   const prev = document.querySelector('.screen.on');
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   $('logout').style.display = id === 'home' ? 'none' : '';
+  syncChrome();
   if (!prev || prev.id !== id){ $(id).scrollTop = 0; window.scrollTo(0, 0); }   // nouvel écran : on repart en haut
 }
 // Déconnexion : libère mon joueur, oublie la table sur cet appareil et revient à l'accueil
@@ -810,7 +851,7 @@ try {
     if (!u) return;
     db.ref('admins/' + u.uid).once('value').then(s => {
       adminFlag = !!s.val();
-      updateHome();
+      updateHome(); syncChrome();
       if (g && ref && !statsOpen) render();            // les droits admin changent l'affichage de la préparation
     }).catch(() => {});
   });
@@ -853,7 +894,7 @@ db.ref('lobby').on('value', s => {
 function leaveGame(){
   if (ref && gameCb) ref.off('value', gameCb);
   ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null; proceeded = false;
-  statsOpen = false; reorderOpen = false; adding = false; optsShown = false;
+  statsOpen = false; reorderOpen = false; adding = false; optsShown = false; shSig = ''; shPrev = null;
   $('tofx').classList.remove('on'); $('rwfx').classList.remove('on');
   closeSheet();
   disarm();
@@ -910,7 +951,7 @@ function shortExt(x, base){
 // affichage des éléments liés à Myludo sur la page d'accueil (admin uniquement)
 function syncMl(){
   const adm = isAdmin();
-  $('mlRow').style.display = adm && MYLUDO_RELAY ? '' : 'none';
+  $('mlSearch').style.display = adm && MYLUDO_RELAY ? '' : 'none';
   const pk = $('mlPick');
   if (adm && mlGame){
     pk.style.display = '';
@@ -958,12 +999,12 @@ let mlSeq = 0, mlCache = [], mlTimer = null;
 function openGameSearch(){
   setSheet('<div class="sh-title">Chercher sur Myludo</div>' +
     '<input id="mlq" type="text" placeholder="Nom du jeu" maxlength="80" autocomplete="off" value="' + esc($('code').value.trim()) + '">' +
-    '<label class="opt" style="padding:0"><input type="checkbox" id="mlfr" checked><span>Français uniquement</span></label>' +
+    ($('gext').checked ? '<label class="opt" style="padding:0"><input type="checkbox" id="mlfr" checked><span>Français uniquement</span></label>' : '') +
     '<div id="mlres" class="mlres"></div>', 'Fermer', null, true);
   const inp = $('mlq'), box = $('mlres');
   inp.oninput = () => { clearTimeout(mlTimer); mlTimer = setTimeout(runGameSearch, 450); };
   inp.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); clearTimeout(mlTimer); runGameSearch(); } };
-  $('mlfr').onchange = runGameSearch;
+  if ($('mlfr')) $('mlfr').onchange = runGameSearch;
   box.onclick = e => { const b = e.target.closest('button[data-i]'); if (b && mlCache[+b.dataset.i]) pickMlGame(mlCache[+b.dataset.i]); };
   if (inp.value.length >= 2) runGameSearch(); else mlEmpty(box, 'Tape au moins 2 lettres.');
   inp.focus();
@@ -975,7 +1016,7 @@ async function runGameSearch(){
   if (q.length < 2){ mlEmpty(box, 'Tape au moins 2 lettres.'); return; }
   mlEmpty(box, 'Recherche…');
   try {
-    const list = await mlAll(q, 'basegame', $('mlfr').checked ? 'fr' : '');
+    const list = await mlAll(q, 'basegame', $('mlfr') && !$('mlfr').checked ? '' : 'fr');   // sans extension : français uniquement
     if (n !== mlSeq || !$('mlres')) return;
     mlCache = list;
     box.innerHTML = list.length
@@ -1113,6 +1154,11 @@ function render(){
   if (!g.started) return renderLobby();
   const mode = modeOf(), n = players().length;
   meIdx = myIdx();
+  if (isShared()){
+    if (meIdx === null && !proceeded) return renderLobby();
+    if (meIdx === null || meIdx >= n) return renderWho();
+    return renderShared();
+  }
   if (mode === 'solo' || mode === 'ia'){
     // un seul téléphone joue tous les joueurs : on incarne celui dont c'est le tour
     if (meIdx === null) return renderLobby();
@@ -1147,7 +1193,7 @@ function renderLobby(){
   const seqIa = mode === 'seq' || mode === 'ia', sim = mode === 'sim';
   const showFirst = seqIa || (sim && !!o.rotate);
   const list = players(), box = $('plist'), claims = g.claims || {}, myI = myIdx();
-  const canPick = !adm && !started && (mode === 'seq' || sim);     // joueur : choisir / ajouter mon prénom
+  const canPick = !adm && !started && (mode === 'seq' || sim) && !o.shared;     // joueur : choisir / ajouter mon prénom (pas en mode « un mobile »)
   if (!canPick) adding = false;
   box.innerHTML = '';
   if (!list.length){
@@ -1205,14 +1251,17 @@ function renderLobby(){
   $('optRewind').checked = !!o.rewind;
   $('optRounds').checked = !!o.rounds;
   $('optRotate').checked = !!o.rotate;
+  $('optShared').checked = !!o.shared;
   $('optCd').checked = !!o.cd;
   $('optCdm').checked = !!o.cdm;
   if (document.activeElement !== $('cdSecs')) $('cdSecs').value = o.cdSecs || 60;
-  ['optHurry', 'optRewind', 'optRounds', 'optRotate', 'optCd', 'optCdm', 'cdSecs'].forEach(id => { $(id).disabled = !adm || started; });
+  ['optHurry', 'optRewind', 'optRounds', 'optRotate', 'optShared', 'optCd', 'optCdm', 'cdSecs'].forEach(id => { $(id).disabled = !adm || started; });
   $('lblCdm').style.display = sim ? '' : 'none';                       // lancement manuel : simultané uniquement
   $('cdRow').style.display = (o.cd || (sim && o.cdm)) ? '' : 'none';
-  $('lblRewind').style.display = seqIa ? '' : 'none';
-  $('lblHurry').style.display = (mode === 'seq' || sim) ? '' : 'none';
+  const shr = !!o.shared && (mode === 'seq' || sim);
+  $('lblShared').style.display = (mode === 'seq' || sim) ? '' : 'none';
+  $('lblRewind').style.display = seqIa && !shr ? '' : 'none';
+  $('lblHurry').style.display = ((mode === 'seq' && !shr) || sim) ? '' : 'none';
   $('lblRounds').style.display = (seqIa || sim) ? '' : 'none';      // « par manche » et « changement de 1er joueur » aussi en simultané
   $('lblRotate').style.display = (seqIa || sim) ? '' : 'none';
   $('roundsTxt').innerHTML = sim ? ROUNDS_SIM : ROUNDS_SEQ;
@@ -1305,6 +1354,11 @@ $('cdSecs').onchange = e => {
 $('optRewind').onchange = e => { if (isAdmin()) ref.child('options/rewind').set(e.target.checked); };
 $('optRounds').onchange = e => { if (isAdmin()) ref.child('options/rounds').set(e.target.checked); };
 $('optRotate').onchange = e => { if (isAdmin()) ref.child('options/rotate').set(e.target.checked); };
+$('optShared').onchange = e => {
+  if (!isAdmin()) return;
+  // un seul mobile : ni Rewind ni Time out par tapotements (les autres joueurs n'ont pas de téléphone)
+  ref.child('options').update(e.target.checked ? Object.assign({shared: true, rewind: false}, modeOf() === 'seq' ? {hurry: false} : {}) : {shared: false});
+};
 
 function nameErr(msg){ $('nameErr').textContent = msg || ''; }
 function addPlayer(){
@@ -1438,6 +1492,11 @@ function launch(){
     if (mode === 'solo' || mode === 'ia'){
       cur.claims = {}; pl.forEach((p, i) => { cur.claims[i] = dev; });   // ce téléphone joue tous les joueurs
       cur.go = true;
+    } else if (cur.options && cur.options.shared){
+      // un mobile pour tous : ce téléphone prend le 1er bloc (jusqu'à 4 joueurs) ; au-delà, un second mobile prend le reste
+      const bl = sharedBlocks(pl.length);
+      cur.claims = {}; bl[0].forEach(i => { cur.claims[i] = dev; });
+      cur.go = bl.length === 1;
     } else {
       // le chrono démarre quand tout le monde a choisi son prénom (certains l'ont peut-être déjà fait)
       const c = cur.claims || {}; let k = 0;
@@ -1465,6 +1524,16 @@ function claim(i){
     return cur;
   }, (err, ok) => { if (ok) checkGo(); });
 }
+// un mobile pour tous : ce téléphone prend tous les joueurs d'un bloc (et reprend la main s'il était à un autre mobile)
+function claimBlock(bl){
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    const c = cur.claims = cur.claims || {};
+    for (const k in c) if (c[k] === dev) delete c[k];
+    bl.forEach(i => { c[i] = dev; });
+    return cur;
+  }, (err, ok) => { if (ok) checkGo(); });
+}
 // quand tout le monde a choisi son nom, les chronos démarrent
 function checkGo(){
   ref.transaction(cur => {
@@ -1483,6 +1552,18 @@ function renderWho(){
   show('who');
   const box = $('whoList'); box.innerHTML = '';
   const claims = g.claims || {};
+  if (isShared()){
+    // un mobile pour tous : on choisit quel « mobile » on est (1er bloc de joueurs, ou 2e s'il y a plus de 4 joueurs)
+    sharedBlocks(players().length).forEach((bl, b) => {
+      const other = bl.some(i => claims[i] != null && claims[i] !== dev);
+      const btn = document.createElement('button');
+      btn.innerHTML = 'Mobile ' + (b + 1) + '<small style="display:block;font-size:14px;opacity:.85;font-weight:400">' + bl.map(i => esc(players()[i].name)).join(', ') + (other ? ' · utilisé par un autre mobile (reprendre)' : '') + '</small>';
+      btn.style.cssText = 'display:block;width:100%;margin:12px 0;padding:22px;font-size:24px;border-radius:24px;border:1px solid rgba(255,255,255,.7)';
+      btn.onclick = () => claimBlock(bl);
+      box.append(btn);
+    });
+    return;
+  }
   players().forEach((p, i) => {
     const taken = !!claims[i] && claims[i] !== dev;
     const b = document.createElement('button');
@@ -1496,6 +1577,162 @@ function renderWho(){
   });
 }
 
+
+/* ============================================================
+   Un mobile pour les contrôler tous
+   ============================================================ */
+// un mobile gère au plus 4 joueurs ; au-delà, on les répartit sur 2 mobiles (découpage équivalent)
+function sharedBlocks(n){
+  const all = Array.from({length: n}, (_, i) => i);
+  if (n <= 4) return [all];
+  const k = Math.ceil(n / 2);
+  return [all.slice(0, k), all.slice(k)];
+}
+function isShared(v){
+  v = v || g;
+  const m = v && v.options && v.options.mode;
+  return !!(v && v.options && v.options.shared && (m === 'seq' || m === 'sim' || m === undefined));
+}
+let shKey = null, shSig = '', shSince = 0, shZones = {}, shPrev = null;
+
+// mise en page selon le nombre de joueurs du mobile : 2 = deux moitiés, 3 = trois quarts + compteur, 4 = quatre quarts + compteur au centre
+function shLayout(m){
+  // [gauche, haut, largeur, hauteur] en %, + retournement (joueur assis en face)
+  if (m === 1) return {z: [[0, 0, 100, 100, 0]], c: 'h'};
+  if (m === 2) return {z: [[0, 50, 100, 50, 0], [0, 0, 100, 50, 1]], c: 'h'};
+  if (m === 3) return {z: [[0, 50, 50, 50, 0], [0, 0, 50, 50, 1], [50, 0, 50, 50, 1]], c: 'q'};
+  return {z: [[0, 50, 50, 50, 0], [0, 0, 50, 50, 1], [50, 0, 50, 50, 1], [50, 50, 50, 50, 0]], c: 'v'};
+}
+function sharedEnd(i){
+  if (!ref || !g) return;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if (!cur.go || cur.reorder || cur.ended) return;
+    const n = cur.players.length, now = nowS();
+    if (modeOf(cur) === 'sim'){
+      if (cur.done && cur.done[i]) return;
+      finishSim(cur, i, now);
+    } else {
+      if ((cur.current % n) !== i) return;
+      advance(cur, 'play', now);
+    }
+    return cur;
+  });
+}
+function sharedPass(i){
+  if (!ref || !g) return;
+  ref.transaction(cur => {
+    if (!cur) return cur;
+    if (!cur.go || cur.reorder || cur.ended || !(cur.options && cur.options.rounds)) return;
+    if ((cur.current % cur.players.length) !== i) return;
+    advance(cur, 'pass', nowS());
+    return cur;
+  });
+}
+function zoneTap(i){
+  if (!g || !g.started || !g.go || g.reorder || g.ended) return;
+  if (Date.now() - shSince < 700) return;                    // garde anti-clic accidentel
+  const n = players().length;
+  if (modeOf() === 'sim'){ if (!(g.done && g.done[i])) sharedEnd(i); }
+  else if (g.current % n === i) sharedEnd(i);
+}
+$('shc').onclick = () => {                                    // le compteur ouvre les chronos
+  if (!g || !g.started) return;
+  const rows = players().map((p, i) => `<tr><td><span class="dot2" style="background:${p.color}"></span>${esc(p.name)}</td><td>${fmt(elapsed(i))}</td></tr>`).join('');
+  setSheet('<div class="sh-title">Chronos</div>' +
+    '<table class="stt"><thead><tr><th>Joueur</th><th>Temps de jeu</th></tr></thead><tbody>' + rows +
+    `<tr class="tot"><td>Total de la partie</td><td>${fmt(totalMs())}</td></tr></tbody></table>`, 'Fermer', null, true);
+};
+
+function renderShared(){
+  show('shared');
+  const list = players(), n = list.length, o = g.options || {}, isSim = modeOf() === 'sim';
+  const blocks = sharedBlocks(n), claims = g.claims || {};
+  const bl = blocks.find(b => claims[b[0]] === dev) || blocks[0];
+  const lay = shLayout(bl.length), cur = g.current % n;
+  const done = g.done || {}, passed = g.passed || {};
+  waiting = claimedCount() < n;
+  const al = (g.alarm && g.alarm.turn === g.turn) ? g.alarm : null;
+  const rem = al ? Math.max(0, Math.ceil((al.until - nowS()) / 1000)) : 0;
+  const sk = (g.skipped && g.skipped.turn === g.turn && nowS() < g.skipped.until) ? g.skipped : null;
+  const key = isSim ? 'r' + (g.round || 1) : cur;
+
+  // structure : reconstruite seulement si le découpage ou les joueurs changent
+  const sig = bl.join(',') + '|' + list.map(p => p.name + p.color).join(',');
+  const box = $('shz'), sc = $('shc');
+  if (sig !== shSig){
+    shSig = sig; shZones = {}; box.innerHTML = '';
+    bl.forEach((pi, k) => {
+      const [l, t, w, hh, fl] = lay.z[k], p = list[pi];
+      const z = document.createElement('div');
+      z.className = 'zn' + (fl ? ' flip' : '');
+      z.style.cssText = `left:${l}%;top:${t}%;width:${w}%;height:${hh}%`;
+      z.innerHTML = `<div class="zb" style="background:${esc(p.color)};color:${textOn(p.color)}"><div class="zi"><div class="zn-name">${esc(p.name)}</div><div class="zn-msg"></div><div class="zn-t"></div><button type="button" class="zp" style="display:none">Passer son tour</button></div></div>`;
+      z.querySelector('.zb').onclick = () => zoneTap(pi);
+      z.querySelector('.zp').onclick = e => { e.stopPropagation(); if (Date.now() - shSince > 700) sharedPass(pi); };
+      box.append(z);
+      shZones[pi] = z;
+    });
+    sc.className = 'glass ' + lay.c;
+    if (lay.c === 'q') sc.style.cssText = '';
+  }
+
+  // nouveau tour : clignotement + son
+  const turnChanged = shPrev !== key || (waiting !== shWasWaiting);
+  shWasWaiting = waiting;
+  if (turnChanged){ shSince = Date.now(); }
+  const mineNow = bl.some(pi => isSim ? !done[pi] : pi === cur);
+  bl.forEach(pi => {
+    const z = shZones[pi], zb = z.querySelector('.zb'), p = list[pi];
+    const active = !waiting && !g.reorder && (isSim ? !done[pi] : pi === cur);
+    const msg = z.querySelector('.zn-msg'), pb = z.querySelector('.zp');
+    z.classList.toggle('on', active);
+    zb.style.color = active ? textOn(p.color) : 'var(--ink)';
+    zb.classList.toggle('lt', isLight(p.color));
+    let txt = '';
+    if (waiting) txt = '';
+    else if (g.reorder) txt = '';
+    else if (al && al.player === pi) txt = rem <= 5 ? String(rem) : 'DÉPÊCHE-TOI !';
+    else if (isSim) txt = done[pi] ? 'Terminé' : 'Touche quand tu as fini';
+    else if (pi === cur) txt = 'À TOI ! Touche pour finir';
+    else txt = passed[pi] ? 'a passé' : '';
+    msg.textContent = txt;
+    z.querySelector('.zn-t').textContent = g.go ? fmt(elapsed(pi)) : '';
+    pb.style.display = (!waiting && !g.reorder && o.rounds && !isSim && pi === cur) ? '' : 'none';
+    // clignotements : début de tour (flash), alarme (slow / fast)
+    let want;
+    if (al && al.player === pi) want = rem <= 5 ? 'fast' : 'slow';
+    else if (active && turnChanged) want = 'flash';
+    else want = (zb.dataset.blink === 'flash' && active) ? 'flash' : '';
+    if (zb.dataset.blink !== want || (want === 'flash' && turnChanged)){
+      zb.classList.remove('flash', 'slow', 'fast'); void zb.offsetWidth;
+      if (want) zb.classList.add(want);
+      zb.dataset.blink = want;
+    }
+  });
+  if (turnChanged && g.go && !waiting && !g.reorder && shPrev !== null){
+    if (mineNow){ sound('turn'); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
+  }
+  shPrev = key;
+
+  // compteur de tours
+  const parts = (o.rounds && !isSim) ? [['Manche', g.round || 1], ['Tour', g.cycle || 1]] : [[o.rounds ? 'Manche' : 'Tour', g.round || 1]];
+  let html = lay.c === 'h'
+    ? '<div>' + parts.map(q => `<span class="cl">${q[0]}</span><b class="cv">${q[1]}</b>`).join('<span class="pp">·</span>') + '</div>'
+    : parts.map(q => `<div class="cl">${q[0]}</div><div class="cv">${q[1]}</div>`).join('');
+  const c = cdInfo(g);
+  let extra = '', low = false;
+  if (waiting) extra = 'En attente du mobile ' + (blocks.length > 1 && bl === blocks[0] ? '2' : '1');
+  else if (g.reorder) extra = 'Choix du 1<sup>er</sup> joueur';
+  else if (sk) extra = 'Tour de ' + esc(list[sk.player] ? list[sk.player].name : '') + ' passé';
+  else if (c && c.pending) extra = c.pending + ' s dès le 1<sup>er</sup> fini';
+  else if (c && c.until){ const r = Math.max(0, c.until - nowS()); extra = fmt(r + 999); low = r <= 10000; }
+  else if (!isSim && g.go && blocks.length > 1 && !bl.includes(cur)) extra = esc(list[cur].name) + ' joue';
+  if (extra) html += `<div class="cx${low ? ' low' : ''}">${extra}</div>`;
+  if (sc.innerHTML !== html) sc.innerHTML = html;
+  syncReorder();
+}
+let shWasWaiting = false;
 /* ---------- Jeu ---------- */
 // compte à rebours : {until} = échéance ; {pending} = en attente du lancement manuel
 function cdSecs(v){ const x = +(v.options && v.options.cdSecs); return x >= 5 ? x : 60; }
@@ -1549,7 +1786,7 @@ function renderGame(){
   iAmActive = mine && !isSolo;
   const act = list[cur];
   $('gback').style.display = waiting ? '' : 'none';
-  $('end').style.display = isAdmin() ? '' : 'none';      // seul l'admin termine la partie
+  syncChrome();                                          // seul l'admin termine la partie
   $('foot').style.display = isSolo ? 'none' : '';
   const wt = $('wait');
   if (waiting){
@@ -2068,6 +2305,7 @@ setInterval(() => {
   if (g.alarm && nowS() >= g.alarm.until) expireAlarm();
   const cdc = cdInfo(g);
   if (cdc && cdc.until && nowS() >= cdc.until) expireCountdown(cdc.until);
+  if (isShared() && $('shared').classList.contains('on')){ renderShared(); return; }
   if (!$('game').classList.contains('on')) return;
   if (g.alarm || skActive) renderGame();   // compte à rebours et message « tour passé »
   else renderTimers();                     // chronos en direct
@@ -2111,7 +2349,7 @@ if (last){ $('code').value = last; join(last); }
       out = document.createElement('button');
       out.id = 'adminOut';
       out.textContent = '(╯°□°)╯︵ ┻━┻';
-      out.style.cssText = 'position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;z-index:5;font-size:14px;padding:6px 14px';
+      out.style.cssText = 'position:fixed;bottom:max(10px,env(safe-area-inset-bottom));right:8px;z-index:60;font-size:14px;padding:6px 14px';
       out.onclick = () => firebase.auth().signOut().catch(e => uiAlert('Erreur : ' + e.message));
       document.getElementById('home').appendChild(out);
     }
@@ -2187,8 +2425,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   /* ---------------- Styles ---------------- */
   var css = '' +
-  'button.dq-btn{position:fixed;left:12px;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 40px);z-index:5;display:none;align-items:center;gap:8px;font-size:15px;font-weight:600;padding:10px 16px}' +
-  'button.dq-btn.on{display:inline-flex}' +
+  'button.dq-btn{position:fixed;left:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:40;display:flex;align-items:center;justify-content:center;width:52px;height:52px;padding:0;border-radius:18px}' +
+  'button.dq-btn svg{width:28px;height:28px}' +
   '.dq-ov{position:fixed;inset:0;z-index:92;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(27,34,51,.4);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}' +
   '.dq-ov.on{display:flex}' +
   '.dq-box{position:relative;width:min(100%,380px);max-height:92vh;overflow:auto;padding:66px 18px 20px;border-radius:28px;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.85);box-shadow:0 10px 34px rgba(40,60,110,.2)}' +
@@ -2233,7 +2471,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   /* QR */
   '.dq-qrhome{margin:14px auto 0;width:fit-content;padding:12px;border-radius:24px;cursor:pointer}' +
   '.dq-qrhome svg{display:block;width:150px;height:150px;border-radius:12px}' +
-  'button.dq-qrfloat{position:fixed;left:8px;top:0px;z-index:30;display:none;width:68px;height:56px;padding:0px 0px 8px 8PX;border-radius:14px;background:#fff;border:1px solid rgba(27,34,51,.15);box-shadow:0 6px 20px rgba(40,60,110,.2)}' +
+  'button.dq-qrfloat{position:fixed;left:8px;top:0px;z-index:4;display:none;width:68px;height:56px;padding:0px 0px 8px 8PX;border-radius:14px;background:#fff;border:1px solid rgba(27,34,51,.15);box-shadow:0 6px 20px rgba(40,60,110,.2)}' +
   'button.dq-qrfloat.on{display:block}' +
   'button.dq-qrfloat svg{display: block;width: 50px;height: 50px;left: 0px;position: relative;top: -16px}' +
   '#lobby .codeval{padding:0 80px}' +
@@ -2596,17 +2834,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   rollBtn.onclick = roll;
 
   var diceBtn = document.createElement('button');
-  diceBtn.type = 'button'; diceBtn.className = 'dq-btn'; diceBtn.innerHTML = IC_DICE + '<span>Lancer des dés</span>';
+  diceBtn.type = 'button'; diceBtn.className = 'dq-btn glass'; diceBtn.setAttribute('aria-label', 'Lancer des dés'); diceBtn.title = 'Lancer des dés'; diceBtn.innerHTML = IC_DICE;
   diceBtn.onclick = openDice;
   document.body.appendChild(diceBtn);
-
-  // visible seulement pour le joueur actif (ou en solo)
-  function canDice() {
-    try {
-      if (!$('game').classList.contains('on') || !g || !g.started || g.ended || g.reorder) return false;
-      return !!iAmActive || modeOf() === 'solo';
-    } catch (e) { return false; }
-  }
 
   /* ====================================================================
      QR CODE
@@ -2642,9 +2872,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   /* ---------------- Visibilité (l'appli change d'écran sans événement) ---------------- */
   function poll() {
-    var can = canDice();
-    diceBtn.classList.toggle('on', can);
-    if (!can && ov.classList.contains('on')) closeDice();
     fl.classList.toggle('on', !!svg && $('lobby').classList.contains('on'));
     if (!svg) return;
     if ($('lobby').classList.contains('on') === false && $('home').classList.contains('on') === false) closeQR();
