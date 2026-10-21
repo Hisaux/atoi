@@ -27,6 +27,7 @@
   .screen{display:none;position:fixed;inset:0;padding:max(22px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom));overflow-y:auto}
   .screen.on{display:flex;flex-direction:column}
   .wrap{width:100%;max-width:460px;margin:0 auto}
+  #lobby,#who{padding-top:calc(max(22px,env(safe-area-inset-top)) + 34px)}   /* sous le bouton de déconnexion */
   #home .wrap{margin:0 auto}
 
   /* ---------- Verre liquide ---------- */
@@ -74,9 +75,9 @@
   .colrow{display:flex;align-items:center;gap:10px;margin:14px 0 4px}     /* pastilles à gauche, « + » aligné sous le rond pcolor */
   .swatches{flex:1;min-width:0;display:grid;grid-template-columns:repeat(6,1fr);gap:10px 6px;justify-items:center}   /* deux lignes de 6, ordre arc-en-ciel */
   button.sw{width:100%;max-width:38px;aspect-ratio:1/1;padding:0;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22)}
-  button.more{flex:0 0 54px;width:54px;height:54px;padding:0;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22);
+  button.more{flex:0 0 44px;width:44px;height:44px;margin:0 5px;padding:0 0 3px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.22);
     background:conic-gradient(#e53935,#fb8c00,#fdd835,#43a047,#4fc3f7,#4169e1,#8e24aa,#f06292,#e53935);
-    color:#fff;font-size:32px;font-weight:700;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+    color:#fff;font-size:30px;font-weight:700;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
   button.sw.sel{box-shadow:0 0 0 3px var(--ink)}
   button.sw.taken{opacity:.3}
 
@@ -191,7 +192,7 @@
   #tapc:empty{display:none}
   #end{position:fixed;right:12px;bottom:max(10px,env(safe-area-inset-bottom));z-index:5;
     font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:#d93025}
-  #snd{position:fixed;right:8px;top:max(8px,env(safe-area-inset-top));z-index:61;
+  #snd{position:fixed;left:8px;top:62px;z-index:61;
     font-size:12px;font-weight:500;padding:6px 12px;border-radius:999px;color:var(--ink2)}
 
 
@@ -210,6 +211,15 @@
   .zn-msg{font-size:clamp(14px,4.2vw,20px);font-weight:600;opacity:.9;line-height:1.2}
   .zn-t{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;opacity:.75}
   .zn button.zp{font-size:14px;padding:7px 14px;margin-top:2px}
+  .zn-name{padding:4px 10px;-webkit-touch-callout:none;touch-action:manipulation}
+  .zn-rw{display:none;align-items:center;gap:8px;font-size:clamp(22px,7vw,32px);font-weight:800}
+  .zn-rw svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;animation:ccw 1.6s linear infinite}
+  .zn.spin .zn-rw svg{animation-duration:.45s}
+  .zn.armed .zn-name,.zn.armed .zn-msg{display:none}
+  .zn.armed .zn-rw{display:flex}
+  .zn.armed .zb{background:rgba(27,34,51,.92)!important;color:#fff!important}
+  .zn.armed .zb::after{opacity:0!important}
+  .zn.shake .zn-name{animation:shake .32s}
   #shc{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 16px;text-align:center;border-radius:22px;
     font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink);line-height:1.15}
   #shc .cl{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
@@ -355,7 +365,7 @@
       <label class="opt" id="lblRounds"><input type="checkbox" id="optRounds"><span id="roundsTxt">Jeu par manche<br><small>Bouton "Passer son tour" : la manche se termine pour ce joueur, les autres jouent jusqu'à ce que tout le monde ait passé.</small></span></label>
       <label class="opt" id="lblRotate"><input type="checkbox" id="optRotate"><span>Changement de 1<sup>er</sup> joueur à chaque manche<br><small>En fin de manche, on choisit le nouveau 1<sup>er</sup> joueur.</small></span></label>
 
-      <label class="opt" id="lblShared"><input type="checkbox" id="optShared"><span>Un mobile pour les contrôler tous<br><small>Tous les joueurs utilisent le même mobile : l'écran est découpé entre les joueurs (jusqu'à 4 par mobile, un second mobile est demandé au-delà). Sans Rewind ni Time out par tapotements.</small></span></label>
+      <label class="opt" id="lblShared"><input type="checkbox" id="optShared"><span>Un mobile pour les contrôler tous<br><small>Tous les joueurs utilisent le même mobile : l'écran est découpé entre les joueurs (jusqu'à 4 par mobile, un second mobile est demandé au-delà). Compatible avec Rewind (appui long sur son nom) et Time out (10 tapotements sur sa zone).</small></span></label>
       <label class="opt" id="lblRewind"><input type="checkbox" id="optRewind"><span>Rewind<br><small>Chaque joueur peut revenir une fois à son dernier tour (en touchant son nom).</small></span></label>
       <label class="opt" id="lblHurry"><input type="checkbox" id="optHurry"><span id="hurryTxt"></span></label>
       <label class="opt" id="lblCd"><input type="checkbox" id="optCd"><span>Compte à rebours<br><small>Chaque tour dure un temps limité (durée ci-dessous) ; quand il est écoulé, le tour est passé. Fonctionne dans tous les modes de jeu.</small></span></label>
@@ -405,7 +415,7 @@
   </div>
   <div id="tapc"></div>
 </div>
-<button id="end" style="display:none">Terminer la partie</button>
+<button id="end" style="display:none" title="Terminer la partie" aria-label="Terminer la partie">┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻</button>
 <button id="snd" style="display:none">Son activé</button>
 
 <!-- UN MOBILE POUR TOUS : l'écran est découpé entre les joueurs -->
@@ -415,7 +425,7 @@
 </div>
 
 <!-- Déconnexion : oublie la session sur cet appareil (hors page de garde) -->
-<button id="logout" style="display:none;position:fixed;bottom:max(10px,env(safe-area-inset-bottom));right:8px;z-index:60;font-size:14px;padding:6px 14px;white-space:nowrap">(╯°□°)╯︵ ┻━┻</button>
+<button id="logout" style="display:none;position:fixed;top:max(8px,env(safe-area-inset-top));right:8px;z-index:60;font-size:14px;padding:6px 14px;white-space:nowrap">(╯°□°)╯︵ ┻━┻</button>
 
 <!-- Fiches : chronos, choix du 1er joueur, statistiques de fin -->
 <div id="sheet">
@@ -569,7 +579,6 @@ function syncChrome(){
   $('snd').style.display = on ? '' : 'none';
   const endOn = on && isAdmin();
   $('end').style.display = endOn ? '' : 'none';
-  $('logout').style.bottom = endOn ? 'calc(max(10px,env(safe-area-inset-bottom)) + 38px)' : 'max(10px,env(safe-area-inset-bottom))';
 }
 function show(id){
   const prev = document.querySelector('.screen.on');
@@ -894,7 +903,7 @@ db.ref('lobby').on('value', s => {
 function leaveGame(){
   if (ref && gameCb) ref.off('value', gameCb);
   ref = null; g = null; meIdx = null; hadData = false; prevCurrent = null; proceeded = false;
-  statsOpen = false; reorderOpen = false; adding = false; optsShown = false; shSig = ''; shPrev = null;
+  statsOpen = false; reorderOpen = false; adding = false; optsShown = false; shSig = ''; shPrev = null; disarmShared();
   $('tofx').classList.remove('on'); $('rwfx').classList.remove('on');
   closeSheet();
   disarm();
@@ -1258,10 +1267,9 @@ function renderLobby(){
   ['optHurry', 'optRewind', 'optRounds', 'optRotate', 'optShared', 'optCd', 'optCdm', 'cdSecs'].forEach(id => { $(id).disabled = !adm || started; });
   $('lblCdm').style.display = sim ? '' : 'none';                       // lancement manuel : simultané uniquement
   $('cdRow').style.display = (o.cd || (sim && o.cdm)) ? '' : 'none';
-  const shr = !!o.shared && (mode === 'seq' || sim);
   $('lblShared').style.display = (mode === 'seq' || sim) ? '' : 'none';
-  $('lblRewind').style.display = seqIa && !shr ? '' : 'none';
-  $('lblHurry').style.display = ((mode === 'seq' && !shr) || sim) ? '' : 'none';
+  $('lblRewind').style.display = seqIa ? '' : 'none';
+  $('lblHurry').style.display = (mode === 'seq' || sim) ? '' : 'none';
   $('lblRounds').style.display = (seqIa || sim) ? '' : 'none';      // « par manche » et « changement de 1er joueur » aussi en simultané
   $('lblRotate').style.display = (seqIa || sim) ? '' : 'none';
   $('roundsTxt').innerHTML = sim ? ROUNDS_SIM : ROUNDS_SEQ;
@@ -1354,11 +1362,7 @@ $('cdSecs').onchange = e => {
 $('optRewind').onchange = e => { if (isAdmin()) ref.child('options/rewind').set(e.target.checked); };
 $('optRounds').onchange = e => { if (isAdmin()) ref.child('options/rounds').set(e.target.checked); };
 $('optRotate').onchange = e => { if (isAdmin()) ref.child('options/rotate').set(e.target.checked); };
-$('optShared').onchange = e => {
-  if (!isAdmin()) return;
-  // un seul mobile : ni Rewind ni Time out par tapotements (les autres joueurs n'ont pas de téléphone)
-  ref.child('options').update(e.target.checked ? Object.assign({shared: true, rewind: false}, modeOf() === 'seq' ? {hurry: false} : {}) : {shared: false});
-};
+$('optShared').onchange = e => { if (isAdmin()) ref.child('options/shared').set(e.target.checked); };
 
 function nameErr(msg){ $('nameErr').textContent = msg || ''; }
 function addPlayer(){
@@ -1631,10 +1635,44 @@ function sharedPass(i){
 }
 function zoneTap(i){
   if (!g || !g.started || !g.go || g.reorder || g.ended) return;
-  if (Date.now() - shSince < 700) return;                    // garde anti-clic accidentel
   const n = players().length;
-  if (modeOf() === 'sim'){ if (!(g.done && g.done[i])) sharedEnd(i); }
-  else if (g.current % n === i) sharedEnd(i);
+  if (modeOf() === 'sim'){ if (Date.now() - shSince > 700 && !(g.done && g.done[i])) sharedEnd(i); }
+  else if (g.current % n === i){ if (Date.now() - shSince > 700) sharedEnd(i); }   // garde anti-clic accidentel
+  else hurryTap(i);                                                                   // Time out : tapotements sur sa zone
+}
+// Time out : chaque joueur (non actif) tapote 10 fois en 10 s sur sa zone => son « vote » est envoyé
+let shTaps = {}, shTapTxt = {}, shTapUntil = {};
+function hurryTap(i){
+  if (modeOf() !== 'seq' || !(g.options && g.options.hurry)) return;
+  if (g.alarm && g.alarm.turn === g.turn) return;
+  const t = Date.now(), a = shTaps[i] = shTaps[i] || [];
+  a.push(t);
+  while (a.length && t - a[0] > 10000) a.shift();
+  if (a.length >= 10){ a.length = 0; shTapTxt[i] = 'Envoyé !'; shTapUntil[i] = t + 1500; sendHurry(i); }
+  else if (a.length >= 3){ shTapTxt[i] = a.length + ' / 10'; shTapUntil[i] = t + 1500; }
+  renderShared();
+}
+// Rewind : on touche son nom, la zone devient « Rewind », on touche une seconde fois pour revenir à son dernier tour
+let shArmed = null, shTimer = null, shBusy = false;
+function disarmShared(){
+  if (shArmed !== null && shZones[shArmed]) shZones[shArmed].classList.remove('armed', 'spin');
+  shArmed = null; shBusy = false; clearTimeout(shTimer);
+}
+let shLong = false, shPress = null;
+function shArm(i){
+  if (!(g && g.options && g.options.rewind) || shBusy || !g.go || shArmed === i) return;
+  const z = shZones[i];
+  disarmShared();
+  if (!canRewind(i)){ z.classList.remove('shake'); void z.offsetWidth; z.classList.add('shake'); return; }
+  shArmed = i; z.classList.add('armed');
+  if (navigator.vibrate) navigator.vibrate(40);
+  clearTimeout(shTimer); shTimer = setTimeout(disarmShared, 6000);
+}
+function shConfirm(i){
+  if (shBusy || shArmed !== i) return;
+  shBusy = true; clearTimeout(shTimer);
+  shZones[i].classList.add('spin');                          // la flèche tourne vite à l'envers
+  setTimeout(() => { doRewind(i); disarmShared(); }, 650);
 }
 $('shc').onclick = () => {                                    // le compteur ouvre les chronos
   if (!g || !g.started) return;
@@ -1661,14 +1699,22 @@ function renderShared(){
   const sig = bl.join(',') + '|' + list.map(p => p.name + p.color).join(',');
   const box = $('shz'), sc = $('shc');
   if (sig !== shSig){
-    shSig = sig; shZones = {}; box.innerHTML = '';
+    shSig = sig; shZones = {}; box.innerHTML = ''; disarmShared();
     bl.forEach((pi, k) => {
       const [l, t, w, hh, fl] = lay.z[k], p = list[pi];
       const z = document.createElement('div');
       z.className = 'zn' + (fl ? ' flip' : '');
       z.style.cssText = `left:${l}%;top:${t}%;width:${w}%;height:${hh}%`;
-      z.innerHTML = `<div class="zb" style="background:${esc(p.color)};color:${textOn(p.color)}"><div class="zi"><div class="zn-name">${esc(p.name)}</div><div class="zn-msg"></div><div class="zn-t"></div><button type="button" class="zp" style="display:none">Passer son tour</button></div></div>`;
-      z.querySelector('.zb').onclick = () => zoneTap(pi);
+      z.innerHTML = `<div class="zb" style="background:${esc(p.color)};color:${textOn(p.color)}"><div class="zi"><div class="zn-name">${esc(p.name)}</div><div class="zn-rw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Rewind</div><div class="zn-msg"></div><div class="zn-t"></div><button type="button" class="zp" style="display:none">Passer son tour</button></div></div>`;
+      z.querySelector('.zb').onclick = () => {
+        if (shLong){ shLong = false; return; }                 // fin d'un appui long sur le nom : rien d'autre
+        if (shArmed === pi) shConfirm(pi); else zoneTap(pi);   // zone « Rewind » armée : un toucher confirme
+      };
+      // Rewind : appui long sur son nom (un simple toucher reste un toucher de zone : fin de tour / Time out)
+      const nm = z.querySelector('.zn-name');
+      nm.addEventListener('pointerdown', () => { shLong = false; clearTimeout(shPress); shPress = setTimeout(() => { shLong = true; shArm(pi); }, 550); });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => nm.addEventListener(ev, () => clearTimeout(shPress)));
+      nm.addEventListener('contextmenu', e => e.preventDefault());
       z.querySelector('.zp').onclick = e => { e.stopPropagation(); if (Date.now() - shSince > 700) sharedPass(pi); };
       box.append(z);
       shZones[pi] = z;
@@ -1680,7 +1726,7 @@ function renderShared(){
   // nouveau tour : clignotement + son
   const turnChanged = shPrev !== key || (waiting !== shWasWaiting);
   shWasWaiting = waiting;
-  if (turnChanged){ shSince = Date.now(); }
+  if (turnChanged){ shSince = Date.now(); shTaps = {}; shTapUntil = {}; }
   const mineNow = bl.some(pi => isSim ? !done[pi] : pi === cur);
   bl.forEach(pi => {
     const z = shZones[pi], zb = z.querySelector('.zb'), p = list[pi];
@@ -1693,6 +1739,7 @@ function renderShared(){
     if (waiting) txt = '';
     else if (g.reorder) txt = '';
     else if (al && al.player === pi) txt = rem <= 5 ? String(rem) : 'DÉPÊCHE-TOI !';
+    else if (shTapUntil[pi] > Date.now()) txt = shTapTxt[pi];
     else if (isSim) txt = done[pi] ? 'Terminé' : 'Touche quand tu as fini';
     else if (pi === cur) txt = 'À TOI ! Touche pour finir';
     else txt = passed[pi] ? 'a passé' : '';
@@ -2144,11 +2191,11 @@ function lastPlayIndex(log, me){
   for (let q = log.length - 1; q >= 0; q--) if (log[q] && log[q].p === me && log[q].a !== 'pass') return q;
   return -1;
 }
-function canRewind(){
-  if (!g || !g.started || meIdx === null || g.reorder) return false;
+function canRewind(me){
+  if (me === undefined) me = meIdx;
+  if (!g || !g.started || me === null || g.reorder) return false;
   const o = g.options || {}, mode = modeOf();
   if (!o.rewind || !(mode === 'seq' || mode === 'ia')) return false;   // option désactivée / mode sans rewind
-  const me = meIdx;
   if (g.rw && g.rw[me]) return false;                         // déjà utilisé
   if (g.passed && g.passed[me]) return false;                 // a passé son tour
   return lastPlayIndex(g.log || [], me) >= 0;                 // a déjà joué au moins une fois
@@ -2162,8 +2209,8 @@ function shake(){
   const el = $('myname');
   el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
 }
-function doRewind(){
-  const me = meIdx;
+function doRewind(me){
+  if (me === undefined) me = meIdx;
   ref.transaction(cur => {
     if (!cur) return cur;
     const o = cur.options || {};
@@ -2225,8 +2272,8 @@ $('game').addEventListener('pointerdown', e => {
   if (taps.length >= 10){ taps.length = 0; $('tapc').textContent = 'Envoyé !'; sendHurry(); }
 });
 
-function sendHurry(){
-  const me = meIdx;
+function sendHurry(me){
+  if (me === undefined) me = meIdx;
   ref.transaction(cur => {
     if (!cur) return cur;
     if (!cur.started || cur.reorder || modeOf(cur) !== 'seq') return;
@@ -2349,7 +2396,7 @@ if (last){ $('code').value = last; join(last); }
       out = document.createElement('button');
       out.id = 'adminOut';
       out.textContent = '(╯°□°)╯︵ ┻━┻';
-      out.style.cssText = 'position:fixed;bottom:max(10px,env(safe-area-inset-bottom));right:8px;z-index:60;font-size:14px;padding:6px 14px';
+      out.style.cssText = 'position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;z-index:5;font-size:14px;padding:6px 14px';
       out.onclick = () => firebase.auth().signOut().catch(e => uiAlert('Erreur : ' + e.message));
       document.getElementById('home').appendChild(out);
     }
@@ -2471,10 +2518,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   /* QR */
   '.dq-qrhome{margin:14px auto 0;width:fit-content;padding:12px;border-radius:24px;cursor:pointer}' +
   '.dq-qrhome svg{display:block;width:150px;height:150px;border-radius:12px}' +
-  'button.dq-qrfloat{position:fixed;left:8px;top:0px;z-index:4;display:none;width:68px;height:56px;padding:0px 0px 8px 8PX;border-radius:14px;background:#fff;border:1px solid rgba(27,34,51,.15);box-shadow:0 6px 20px rgba(40,60,110,.2)}' +
+  'button.dq-qrfloat{position:fixed;left:8px;top:0px;z-index:4;display:none;width:68px;height:56px;padding:0px 0px 16px 8PX;border-radius:0 0 8px 8px;background:#fff;border:1px solid rgba(27,34,51,.15);box-shadow:0 6px 20px rgba(40,60,110,.2)}' +
   'button.dq-qrfloat.on{display:block}' +
-  'button.dq-qrfloat svg{display: block;width: 50px;height: 50px;left: 0px;position: relative;top: -16px}' +
+  'button.dq-qrfloat svg{display: block;width: 50px;height: 50px;left: 0px;position: relative;top: 0px}' +
   '#lobby .codeval{padding:0 80px}' +
+
   '.dq-qrbig{width:min(80vw,80vh,340px);padding:14px;border-radius:24px;background:#fff;box-shadow:0 10px 34px rgba(40,60,110,.25);cursor:pointer}' +
   '.dq-qrbig svg{display:block;width:100%;height:auto}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
